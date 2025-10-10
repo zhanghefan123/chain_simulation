@@ -1,0 +1,207 @@
+network_config:
+  base_v4_network_address: 192.168.0.0/16
+  base_v6_network_address: 2001:db8:1234:5678::/112
+  http_listen_port: 8080
+  enable_frr: true # 这里设置成为false是不想要影响接口的接收速率
+  ospf_version: ospfv2
+  enable_srv6: true
+  ddos_warning_rate: 7 # Mbps
+  # attention (only one of enable_frr and enable_srv6) can be true
+
+constellation_config:
+  start_time: 2024|4|9|14|43|0 # 星座的启动时间
+  satellite_config:
+    type: 0 # 需要查询 pb.go 之中的映射
+    p2p_port: 11300
+    rpc_port: 12300
+  isl_bandwidth: 10 # mbps 为单位
+  gsl_bandwidth: 10 # mbps 为单位
+  satellite_available_gsls: 1 # 卫星可用的地面链路数量
+  minimum_elevation_angle: 5 # 最小的能够支持的仰角
+  time_step_key: /config/time_step  # time_step 对应的 key
+  minimum_elevation_angle_key: /config/minimum_elevation_angle # minimum_elevation_angle 对应的 key
+  update_position: true
+
+#  节点的类型
+#  const (
+#  NetworkNodeType_NormalSatellite NetworkNodeType = 0
+#  NetworkNodeType_EtcdService     NetworkNodeType = 1
+#  NetworkNodeType_PositionService NetworkNodeType = 2
+#  NetworkNodeType_Router          NetworkNodeType = 3
+#  NetworkNodeType_NormalNode      NetworkNodeType = 4
+#  NetworkNodeType_ConsensusNode   NetworkNodeType = 5
+#  NetworkNodeType_ChainMakerNode  NetworkNodeType = 6
+#  NetworkNodeType_MaliciousNode   NetworkNodeType = 7
+#  NetworkNodeType_LirNode         NetworkNodeType = 8
+#  NetworkNodeType_Entrance        NetworkNodeType = 9
+#  NetworkNodeType_GroundStation   NetworkNodeType = 10
+#  NetworkNodeType_FabricPeerNode  NetworkNodeType = 11
+#  NetworkNodeType_FabricOrderNode NetworkNodeType = 12
+#  NetworkNodeType_LiRSatellite    NetworkNodeType = 13
+#  )
+
+
+chain_maker_config:
+  p2p_start_port: 11301
+  rpc_start_port: 12301
+  log_level: INFO
+  vm_go_runtime_port: 32351
+  vm_go_engine_port: 22351
+  enable_defence: false
+  check_ddos_period_ms: 500
+  blocks_per_proposer: 1
+  timeout_propose: 5
+  timeout_propose_optimal: 50
+  propose_optimal: true
+  chainmaker_go_project_path: /home/zhf/Projects/emulator/chainmaker-go
+  chainmaker_build: ./build
+  templates_file_path: ../resources/templates
+  resend_sync: true
+  tick_interval_ms: 1
+
+
+images_config:
+  #  normal_satellite_image_name: "normal_satellite"
+  lir_satellite_image_name: "lir_node"
+  normal_satellite_image_name: "normal_satellite"
+  ground_station_image_name: "ground_station"
+  consensus_satellite_image_name: "consensus_satellite"
+  router_image_name: "router"
+  normal_node_image_name: "normal_node"
+  consensus_node_image_name: "consensus_node"
+  chain_maker_node_image_name: "chainmaker"
+  malicious_node_image_name: "malicious_node"
+  etcd_service_image_name: "etcd_service"
+  position_service_image_name: "realtime_position"
+  lir_node_image_name: "lir_node"
+  entrance_image_name: "normal_node"
+  fabric_peer_image_name: "hyperledger/fabric-peer"
+  fabric_order_image_name: "hyperledger/fabric-orderer"
+  fisco_bcos_image_name: "fiscoorg/fiscobcos:v3.12.1"
+
+
+path_config:
+  resources_path: "../resources"
+  config_generate_path: "../simulation"
+  frr_path:
+    frr_host_path: ../simulation/frr
+    frr_container_path: /configuration/frr
+  address_mapping_path: /configuration/address
+  real_time_position_dir: satellites_position
+  gotty_path: ./gotty
+
+services_config:
+  etcd_config:
+    client_port: 2379 # 重要
+    peer_port: 2380 # 不是很重要
+    data_dir: "/opt/bitnami/etcd/data"
+    etcd_name: "etcd_service"
+    etcd_prefix:
+      satellites_prefix: "/security_topology/satellites"
+      ground_stations_prefix: "/security_topology/gnds"
+      isls_prefix: "/security_topology/isls"
+      gsls_prefix: "/security_topology/gsls"
+  web_config:
+    start_port: 36666
+
+  position_update_config:
+    interval: 1
+    enabled: true
+
+  delay_update_config:
+    enabled: true
+
+apps_config:
+  ipv6_config:
+    server_port: 8080
+
+# 进行长安链的资源配置
+resources_config:
+  cpu_limit: 2
+  memory_limit: 2
+  topologies_dir: "../resources/topologies/"
+
+path_validation_config:
+  routing_table_type: 1 # 1 -> array based routing table | 2 -> hash based routing table
+  bf_effective_bits: 72 # 有效的位数 (在 lir 之中是 bf 的大小, 在 selir 之中是 ppf 的大小)
+  pvf_effective_bits: 72 # 在 selir 之中有效, 其代表的是 selir 之中的 pvf 的大小
+  hash_seed: 5 # hash 种子
+  number_of_hash_functions: 5 # 哈希函数的个数
+  lir_single_time_encoding_count: -1 # 设置的每次封装的元素个数
+
+fabric_config:
+  order_general_listen_start_port: 7050
+  order_admin_listen_start_port: 8050
+  order_operation_listen_start_port: 9050
+  order_start_port: 7050
+  peer_listen_start_port: 5050
+  peer_chaincode_start_port: 5550
+  peer_operation_start_port: 6050
+  pprof_orderer_start_listen_port: 14300
+  pprof_peer_start_listen_port: 15300
+  enable_pprof: false
+  enable_routine: true # enable routine 一定要设置为 true, 不然可能会导致tps周期性降低为0, 并且安装完链码后要等待一段时间
+  enable_advanced_message_handler: true
+  enable_leader_step_down: false
+  consensus_type: 1
+  log_level: WARN
+  enable_broadcast_defence: false
+  direct_remove_attacked_node: false
+  speed_check: false
+  fabric_project_path: /home/zhf/Projects/emulator/fabric
+  fabric_samples_path: /home/zhf/Projects/emulator/fabric-samples
+  fabric_network_path: /home/zhf/Projects/emulator/fabric-samples/test-network
+  forward_timeout: 5
+  complain_timeout: 5
+
+fisco_bcos_config:
+  project_path: /home/zhf/Projects/emulator/FISCO-BCOS
+  example_path: /home/zhf/Projects/emulator/FISCO-BCOS-EXAMPLE
+  console_path: /home/zhf/Projects/emulator/FISCO-CONSOLE
+  p2p_start_port: 30300
+  rpc_start_port: 20200
+  consensus_timeout: 5000
+  min_seal_time: 25
+  sealer_wait_ms: 25
+  allowed_lagging_behind_blocks: 4
+  leader_period: 1
+  water_mark_limit: 50
+  log_level: error
+  large_interval: false # 暂时没用
+  # ------------- 全错参数 -------------
+  #  fast_trigger: true
+  #  recursive_trigger: true
+  #  use_modified_request_blocks: false
+  #  enable_pending: false
+  # ------------- 全错参数 -------------
+  # ------------- 正常参数 -------------
+  fast_trigger: false
+  recursive_trigger: false
+  use_modified_request_blocks: true
+  enable_pending: true
+  # ------------- 正常参数 -------------
+
+
+# 200 200 -> 1500 左右
+# 100 100 ->
+
+raspberrypi_config:
+  node_ids:
+    - 1
+    - 2
+    - 3
+  node_types:
+    - Router
+    - Router
+    - Router
+  ip_addresses:
+    - 192.168.110.79
+    - 192.168.110.92
+    - 192.168.110.93
+  connections:
+    - 1:eth0-2:eth1
+    - 2:eth0-3:eth0
+  user_name: zeusnet
+  password: zeusnet123
+  grpc_port: 8972
+  python_path: /home/zeusnet/miniconda3/envs/lir/bin/python

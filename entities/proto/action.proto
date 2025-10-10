@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option go_package = "../types";
+
+enum ActionType {
+  StartTopology = 0;
+  StopTopology = 1;
+  StartInstallChaincode = 2;
+  StartAttack = 3;
+  StartConsensus = 4;
+  StopConsensus = 5;
+  WaitTopologyRemove = 6;
+}

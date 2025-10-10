@@ -1,0 +1,23 @@
+network_config:
+  backend_addr: "10.134.86.192"
+  backend_port: 8080
+
+attack_config:
+  thread_count: 40
+  duration: 20
+  type: "udp_flood_attack"
+
+path_config:
+  cmd: "/home/zhf/Projects/emulator/backend/cmd"
+  configuration_yml: "../resources/configuration.yml"
+
+url_config:
+  start_topology_url: "startTopology"
+  stop_topology_url: "stopTopology"
+  start_attack_url: "startAttack"
+  start_tx_rate_test_url: "startTxRateTest"
+  stop_tx_rate_test_url: "stopTxRateTest"
+  install_chain_code_url: "installChannelAndChaincode"
+
+consensus_config:
+  thread_count: 20
