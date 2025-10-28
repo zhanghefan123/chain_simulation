@@ -4,12 +4,11 @@ network_config:
 
 attack_config:
   thread_count: 40
-  duration: 20
-  type: "udp_flood_attack"
+  type: "udp flood attack"
 
 path_config:
   cmd: "/home/zhf/Projects/emulator/backend/cmd"
-  configuration_yml: "../resources/configuration.yml"
+  configuration_yml: "/home/zhf/Projects/emulator/backend/resources/configuration.yml"
 
 url_config:
   start_topology_url: "startTopology"

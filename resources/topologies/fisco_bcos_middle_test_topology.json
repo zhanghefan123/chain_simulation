@@ -53,6 +53,24 @@
       "type": "FiscoBcosNode",
       "x": 95,
       "y": 662
+    },
+    {
+      "index": 5,
+      "type": "FiscoBcosNode",
+      "x": 84.2716049382716,
+      "y": 175.6728395061728
+    },
+    {
+      "index": 6,
+      "type": "FiscoBcosNode",
+      "x": 476.86419753086426,
+      "y": 75.6728395061728
+    },
+    {
+      "index": 7,
+      "type": "FiscoBcosNode",
+      "x": 273.7407407407407,
+      "y": 661.6728395061727
     }
   ],
   "links": [
@@ -188,6 +206,51 @@
         "type": "Router",
         "x": 248,
         "y": 554
+      },
+      "link_type": "backbone"
+    },
+    {
+      "source_node": {
+        "index": 5,
+        "type": "FiscoBcosNode",
+        "x": 84.2716049382716,
+        "y": 175.6728395061728
+      },
+      "target_node": {
+        "index": 1,
+        "type": "Router",
+        "x": 243,
+        "y": 178
+      },
+      "link_type": "backbone"
+    },
+    {
+      "source_node": {
+        "index": 6,
+        "type": "FiscoBcosNode",
+        "x": 476.86419753086426,
+        "y": 75.6728395061728
+      },
+      "target_node": {
+        "index": 2,
+        "type": "Router",
+        "x": 507,
+        "y": 181
+      },
+      "link_type": "backbone"
+    },
+    {
+      "source_node": {
+        "index": 4,
+        "type": "Router",
+        "x": 248,
+        "y": 554
+      },
+      "target_node": {
+        "index": 7,
+        "type": "FiscoBcosNode",
+        "x": 273.7407407407407,
+        "y": 661.6728395061727
       },
       "link_type": "backbone"
     }

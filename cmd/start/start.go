@@ -2,8 +2,9 @@ package start
 
 import (
 	"chain_simulation/configs"
-	"chain_simulation/entities/types"
-	"chain_simulation/simulation"
+	"chain_simulation/experiments/chainmaker"
+	fabrics "chain_simulation/experiments/fabric"
+	"chain_simulation/experiments/fiscobcos"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -18,9 +19,21 @@ func CreateStartCmd() *cobra.Command {
 			if err != nil {
 				fmt.Printf("init top config err %v\n", err)
 			}
-			err = simulation.TickIntervalSimulations(types.TopologyType_ChainMaker)
+			// fabric 实验
+			err = fabrics.NormalExperiment()
 			if err != nil {
-				fmt.Printf("TickIntervalSimulations: %v\n", err)
+				fmt.Printf("fabric experiment failed: %v", err)
+				return
+			}
+			// chainmaker 实验
+			err = chainmaker.WithBlackListExperiment()
+			if err != nil {
+				fmt.Printf("chainmaker experiment failed: %v", err)
+			}
+			// fisco bcos 实验
+			err = fiscobcos.WithBlackListExperiment()
+			if err != nil {
+				fmt.Printf("fisco bcos experiment failed: %v", err)
 			}
 		},
 	}

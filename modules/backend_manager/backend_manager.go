@@ -26,7 +26,11 @@ func StartBackendService(experimentIndex int) {
 		defer func() {
 			thread_manager.ThreadManagerInstance.Done()
 		}()
-		startBackendService(experimentIndex)
+		cmd := startBackendService(experimentIndex)
+		err := cmd.Wait()
+		if err != nil {
+			fmt.Printf("backend service error: %v\n", err)
+		}
 	}()
 }
 
@@ -34,7 +38,7 @@ func StopBackendService() {
 	BackendManagerInstance.Cancel()
 }
 
-func startBackendService(experimentIndex int) {
+func startBackendService(experimentIndex int) *exec.Cmd {
 	var cmd *exec.Cmd
 	var cmdPath = configs.TopConfigInstance.PathConfig.Cmd
 	var ctx context.Context
@@ -51,18 +55,11 @@ func startBackendService(experimentIndex int) {
 			if err := cmd.Start(); err != nil {
 				fmt.Printf("start backend service error: %v\n", err)
 			}
-
-			go func() {
-				// 3. 阻塞直到完成
-				err := cmd.Wait()
-				if err != nil {
-					fmt.Printf("backend service error: %v\n", err)
-				}
-			}()
 			return nil
 		})
 		if err != nil {
 			fmt.Printf("start backend service error: %v\n", err)
 		}
 	}
+	return cmd
 }
