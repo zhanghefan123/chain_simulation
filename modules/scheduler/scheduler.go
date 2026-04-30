@@ -2,8 +2,10 @@ package scheduler
 
 import (
 	"chain_simulation/entities"
+	"chain_simulation/modules/progress_bar"
 	"chain_simulation/modules/thread_manager"
 	"fmt"
+	"github.com/schollz/progressbar/v3"
 	"sync"
 	"time"
 )
@@ -11,17 +13,21 @@ import (
 var SchedulerInstance = NewScheduler()
 
 type Scheduler struct {
-	CurrentTime time.Time
-	StopQueue   chan struct{}
-	EventList   []*entities.Event
-	WaitGroup   *sync.WaitGroup
+	CurrentTime       time.Time
+	StopQueue         chan struct{}
+	EventList         []*entities.Event
+	ExecutedEventList []*entities.Event
+	WaitGroup         *sync.WaitGroup
+	ProgressBar       *progressbar.ProgressBar
 }
 
 func NewScheduler() *Scheduler {
 	return &Scheduler{
-		StopQueue: make(chan struct{}),
-		EventList: make([]*entities.Event, 0),
-		WaitGroup: &sync.WaitGroup{},
+		StopQueue:         make(chan struct{}),
+		EventList:         make([]*entities.Event, 0),
+		ExecutedEventList: make([]*entities.Event, 0),
+		WaitGroup:         &sync.WaitGroup{},
+		ProgressBar:       nil,
 	}
 }
 
@@ -35,12 +41,9 @@ func StartScheduler() {
 	}()
 }
 
-func AddEventIntoScheduler(event *entities.Event) {
-	SchedulerInstance.AddEvent(event)
-}
-
 func SetEventsIntoScheduler(events []*entities.Event) {
 	SchedulerInstance.EventList = events
+	SchedulerInstance.ProgressBar = progress_bar.NewProgressBar(len(SchedulerInstance.EventList), "remained-events")
 }
 
 func StopScheduler() {
@@ -58,7 +61,7 @@ func (s *Scheduler) Start() {
 		s.WaitGroup.Done()
 	}()
 	s.CurrentTime = time.Now()
-	var ticker = time.NewTicker(time.Millisecond * 100)
+	var ticker = time.NewTicker(time.Millisecond * 1000)
 ForLoop:
 	for {
 		select {
@@ -75,14 +78,27 @@ ForLoop:
 					eventsToRemain = append(eventsToRemain, event)
 				}
 			}
+
+			// 找到第一个 event
+			if len(eventsToRemain) > 0 {
+				fmt.Printf("first event %s time remained = %v\n", eventsToRemain[0].Action.String(), eventsToRemain[0].StartTime-time.Since(s.CurrentTime))
+			}
+
 			s.EventList = eventsToRemain
+
 			// 2. 进行执行
 			if len(eventsToExecute) > 0 {
 				for _, event := range eventsToExecute {
+					// 每个事件进行单独的执行
+					fmt.Printf("execute event\n")
 					err := event.Handler()
 					if err != nil {
 						fmt.Printf("Error executing event: %v\n", err)
 					}
+					s.ExecutedEventList = append(s.ExecutedEventList, event)
+
+					// 进行进度条的更新
+					_ = s.ProgressBar.Add(1)
 				}
 			}
 		}

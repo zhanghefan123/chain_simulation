@@ -2,8 +2,36 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="885a0ef4-ff37-4ce0-ae0f-a33b6993f47b" name="10.134.86.192">
+      <webServer id="885a0ef4-ff37-4ce0-ae0f-a33b6993f47b" name="北航服务器(旧版)">
         <fileTransfer rootFolder="/home/zhf" accessType="SFTP" host="10.134.86.192" port="22" sshConfigId="2904c23d-fbbe-4e75-9865-9650105da680" sshConfig="zhf@10.134.86.192:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="40950a99-c963-4fe0-8f22-08ad8efe0043" name="北航服务器(新版2)">
+        <fileTransfer rootFolder="/home/zhf" accessType="SFTP" host="10.134.86.249" port="22" sshConfigId="aac981ba-04ac-4ebb-9298-deac66356a97" sshConfig="zhf@10.134.86.249:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="d68fd494-258d-405e-bba5-e08dfe2c501d" name="北航服务器(新版3)">
+        <fileTransfer rootFolder="/home/zhf" accessType="SFTP" host="10.134.86.153" port="22" sshConfigId="98222471-ca45-43af-9d76-8498c1a39a7f" sshConfig="zhf@10.134.86.153:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="0ccd0de7-3bda-4950-9c9d-143f71550a6c" name="北航服务器(新版4)">
+        <fileTransfer rootFolder="/home/zhf" accessType="SFTP" host="10.134.86.108" port="22" sshConfigId="d84545d8-2868-440c-97c2-d846a8810fd0" sshConfig="zhf@10.134.86.108:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="733a7b4c-2425-4ead-8dd4-73ba3d185716" name="北航服务器(新版)">
+        <fileTransfer rootFolder="/home/zhf" accessType="SFTP" host="10.134.86.26" port="22" sshConfigId="1e3ced71-c979-41f9-91c2-4567e625ac05" sshConfig="zhf@10.134.86.26:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

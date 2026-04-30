@@ -13,8 +13,8 @@ var TopologyManagerInstance = &TopologyManager{}
 type TopologyManager struct {
 }
 
-func StartTopology(topologyType types.TopologyType) error {
-	err := TopologyManagerInstance.Start(topologyType)
+func StartTopology(topologyType types.TopologyType, dynamicParameters *entities.DynamicParameters) error {
+	err := TopologyManagerInstance.Start(topologyType, dynamicParameters)
 	if err != nil {
 		return fmt.Errorf("start topology failed: %v", err)
 	}
@@ -29,13 +29,13 @@ func StopTopology() error {
 	return nil
 }
 
-func (tm *TopologyManager) Start(topologyType types.TopologyType) error {
+func (tm *TopologyManager) Start(topologyType types.TopologyType, dynamicParameters *entities.DynamicParameters) error {
 	startTopologyUrl := fmt.Sprintf("http://%s:%d/%s",
 		configs.TopConfigInstance.NetworkConfig.BackendAddr,
 		configs.TopConfigInstance.NetworkConfig.BackendPort,
 		configs.TopConfigInstance.UrlConfig.StartTopologyUrl)
 
-	topology, err := entities.NewTopology(topologyType)
+	topology, err := entities.NewTopology(topologyType, dynamicParameters)
 	if err != nil {
 		return fmt.Errorf("create topology failed: %v\n", err)
 	}

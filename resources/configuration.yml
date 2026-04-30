@@ -1,6 +1,7 @@
 network_config:
-  backend_addr: "10.134.86.192"
+  backend_addr: "10.134.86.26"
   backend_port: 8080
+  validation_node_port: 9000
 
 attack_config:
   thread_count: 40
@@ -9,6 +10,7 @@ attack_config:
 path_config:
   cmd: "/home/zhf/Projects/emulator/backend/cmd"
   configuration_yml: "/home/zhf/Projects/emulator/backend/resources/configuration.yml"
+  resources_path: "../resources"
 
 url_config:
   start_topology_url: "startTopology"
@@ -20,3 +22,8 @@ url_config:
 
 consensus_config:
   thread_count: 20
+
+sec_path_mab_config:
+  number_of_hops: 3
+  low_corrupt_ratio: 50000
+  high_corrupt_ratio: 250000

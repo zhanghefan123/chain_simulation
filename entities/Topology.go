@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"chain_simulation/configs"
 	"chain_simulation/entities/types"
 	"chain_simulation/utils/file"
 	"encoding/json"
@@ -9,9 +8,12 @@ import (
 )
 
 var (
-	TopologyPathFabric     = "../resources/topologies/fabric_test_topology.json"
-	TopologyPathFisco      = "../resources/topologies/fisco_bcos_test_topology.json"
-	TopologyPathChainmaker = "../resources/topologies/chainmaker_test_topology.json"
+	TopologyPathFabric              = "../resources/topologies/fabric_test_topology.json"
+	TopologyPathFisco               = "../resources/topologies/fisco_bcos_test_topology.json"
+	TopologyPathChainmaker          = "../resources/topologies/chainmaker_test_topology.json"
+	TopologySimplePathValidation    = "../resources/topologies/simple_path_validation_topology.json"
+	TopologyMulticastPathValidation = "../resources/topologies/multicast_path_validation_topology.json"
+	TopologySecPathMab              = "../resources/topologies/sec_path_mab_topology.json"
 )
 
 type Topology struct {
@@ -25,14 +27,25 @@ type Topology struct {
 	ConsensusType  string `json:"consensus_type"`
 	Nodes          []Node `json:"nodes"`
 	Links          []Link `json:"links"`
+
+	SecPathMabType int     `json:"sec_path_mab_type"`
+	PerLinkDelay   float64 `json:"per_link_delay"`
 }
 
-func NewTopology(topologyType types.TopologyType) (*Topology, error) {
+type DynamicParameters struct {
+	ConsensusThreadCount int
+	SecPathMabType       types.SecPathMabStrategy
+	PerLinkDelay         float64
+}
+
+func NewTopology(topologyType types.TopologyType, dynamicParameters *DynamicParameters) (*Topology, error) {
 	topology := &Topology{
-		ConsensusThreadCount: configs.TopConfigInstance.ConsensusConfig.ThreadCount,
+		ConsensusThreadCount: dynamicParameters.ConsensusThreadCount,
 		AccessLinkBandwidth:  8,
 		ConsensusNodeCpu:     2,
 		ConsensusNodeMemory:  1024,
+		SecPathMabType:       int(dynamicParameters.SecPathMabType),
+		PerLinkDelay:         dynamicParameters.PerLinkDelay,
 	}
 	err := loadInformation(topology, topologyType)
 	if err != nil {
@@ -48,17 +61,29 @@ func NewTopology(topologyType types.TopologyType) (*Topology, error) {
 func loadInformation(topology *Topology, topologyType types.TopologyType) error {
 	switch topologyType {
 	case types.TopologyType_HyperledgerFabric:
-		topology.NetworkEnv = types.TopologyType_HyperledgerFabric.String()
+		topology.NetworkEnv = "fabric_test_topology"
 		topology.BlockchainType = "fabric"
 		topology.ConsensusType = "BFT-SMaRt"
 	case types.TopologyType_FiscoBcos:
-		topology.NetworkEnv = types.TopologyType_FiscoBcos.String()
+		topology.NetworkEnv = "fisco_bcos_test_topology"
 		topology.BlockchainType = "fisco-bcos"
 		topology.ConsensusType = "pbft"
 	case types.TopologyType_ChainMaker:
-		topology.NetworkEnv = types.TopologyType_ChainMaker.String()
+		topology.NetworkEnv = "chainmaker_test_topology"
 		topology.BlockchainType = "长安链"
 		topology.ConsensusType = "TBFT"
+	case types.TopologyType_SimplePathValidation:
+		topology.NetworkEnv = "simple_path_validation"
+		topology.BlockchainType = "无区块链"
+		topology.ConsensusType = "无共识协议"
+	case types.TopologyType_MulticastPathValidation:
+		topology.NetworkEnv = "multicast_topology"
+		topology.BlockchainType = "无区块链"
+		topology.ConsensusType = "无共识协议"
+	case types.TopologyType_SecPathMab:
+		topology.NetworkEnv = "sec_path_mab_topology"
+		topology.BlockchainType = "无区块链"
+		topology.ConsensusType = "无共识协议"
 	default:
 		return fmt.Errorf("unsupported topology")
 	}
@@ -87,6 +112,33 @@ func loadNodesAndLinks(topology *Topology, topologyType types.TopologyType) erro
 		}
 	case types.TopologyType_ChainMaker:
 		result, err := file.ReadFile(TopologyPathChainmaker)
+		if err != nil {
+			return fmt.Errorf("read file error")
+		}
+		err = json.Unmarshal([]byte(result), &topology)
+		if err != nil {
+			return fmt.Errorf("unmarshal error")
+		}
+	case types.TopologyType_SimplePathValidation:
+		result, err := file.ReadFile(TopologySimplePathValidation)
+		if err != nil {
+			return fmt.Errorf("read file error")
+		}
+		err = json.Unmarshal([]byte(result), &topology)
+		if err != nil {
+			return fmt.Errorf("unmarshal error")
+		}
+	case types.TopologyType_MulticastPathValidation:
+		result, err := file.ReadFile(TopologyMulticastPathValidation)
+		if err != nil {
+			return fmt.Errorf("read file error")
+		}
+		err = json.Unmarshal([]byte(result), &topology)
+		if err != nil {
+			return fmt.Errorf("unmarshal error")
+		}
+	case types.TopologyType_SecPathMab:
+		result, err := file.ReadFile(TopologySecPathMab)
 		if err != nil {
 			return fmt.Errorf("read file error")
 		}

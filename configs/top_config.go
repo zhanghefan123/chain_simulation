@@ -5,6 +5,7 @@ import (
 	"chain_simulation/configs/consensus"
 	"chain_simulation/configs/network"
 	"chain_simulation/configs/path"
+	"chain_simulation/configs/sec_path_mab"
 	"chain_simulation/configs/url"
 	"fmt"
 
@@ -17,11 +18,12 @@ var (
 )
 
 type TopConfig struct {
-	NetworkConfig   network.Config   `mapstructure:"network_config"`
-	AttackConfig    attack.Config    `mapstructure:"attack_config"`
-	PathConfig      path.Config      `mapstructure:"path_config"`
-	UrlConfig       url.Config       `mapstructure:"url_config"`
-	ConsensusConfig consensus.Config `mapstructure:"consensus_config"`
+	NetworkConfig    network.Config      `mapstructure:"network_config"`
+	AttackConfig     attack.Config       `mapstructure:"attack_config"`
+	PathConfig       path.Config         `mapstructure:"path_config"`
+	UrlConfig        url.Config          `mapstructure:"url_config"`
+	ConsensusConfig  consensus.Config    `mapstructure:"consensus_config"`
+	SecPathMabConfig sec_path_mab.Config `mapstructure:"sec_path_mab_config"`
 }
 
 func InitTopConfig() error {

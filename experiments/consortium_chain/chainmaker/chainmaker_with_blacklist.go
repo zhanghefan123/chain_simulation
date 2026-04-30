@@ -14,39 +14,41 @@ import (
 var topologyType = types.TopologyType_ChainMaker
 var attackDuration = 20
 
-var ChainMakerEvents = []*entities.Event{
+var ChainMakerWithBlacklistEvents = []*entities.Event{
 	{
 		StartTime: time.Second * 10,
 		Action:    types.ActionType_StartTopology,
-		Handler:   func() error { return topology_manager.StartTopology(topologyType) },
+		Handler: func() error {
+			return topology_manager.StartTopology(topologyType, &entities.DynamicParameters{ConsensusThreadCount: 20})
+		},
 	},
 	{
-		StartTime: time.Second * 80,
+		StartTime: time.Second * 90,
 		Action:    types.ActionType_StartConsensus,
 		Handler:   func() error { return consensus_manager.StartConsensus() },
 	},
 	{
-		StartTime: time.Second * 100,
+		StartTime: time.Second * 110,
 		Action:    types.ActionType_StartAttack,
-		Handler:   func() error { return attack_manager.StartAttack(topologyType, attackDuration) },
+		Handler:   func() error { return attack_manager.StartAttack(topologyType, attackDuration, 20) },
 	},
 	{
-		StartTime: time.Second * 140,
+		StartTime: time.Second * 150,
 		Action:    types.ActionType_StartAttack,
-		Handler:   func() error { return attack_manager.StartAttack(topologyType, attackDuration) },
+		Handler:   func() error { return attack_manager.StartAttack(topologyType, attackDuration, 20) },
 	},
 	{
-		StartTime: time.Second * 200,
+		StartTime: time.Second * 210,
 		Action:    types.ActionType_StopConsensus,
 		Handler:   func() error { return consensus_manager.StopConsensus() },
 	},
 	{
-		StartTime: time.Second * 210,
+		StartTime: time.Second * 220,
 		Action:    types.ActionType_StopTopology,
 		Handler:   func() error { return topology_manager.StopTopology() },
 	},
 	{
-		StartTime: time.Second * 220,
+		StartTime: time.Second * 240,
 		Action:    types.ActionType_WaitTopologyRemove,
 		Handler:   func() error { return nil },
 	},
@@ -57,12 +59,18 @@ func WithBlackListExperiment() error {
 		{
 			Mapping: map[string]string{},
 		},
+		{
+			Mapping: map[string]string{},
+		},
+		{
+			Mapping: map[string]string{},
+		},
 	}
 
 	for _, configurationSetting := range configurationSettings {
-		err := experiments.SingleSimulation(configurationSetting, ChainMakerEvents)
+		err := experiments.SingleSimulation(configurationSetting, ChainMakerWithBlacklistEvents)
 		if err != nil {
-			return fmt.Errorf("chainmaker normal experiment failed: %v", err)
+			return fmt.Errorf("chainmaker with black list experiment failed: %v", err)
 		}
 	}
 

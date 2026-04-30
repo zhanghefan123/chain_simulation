@@ -1,44 +1,33 @@
-package fabrics
+package chainmaker
 
 import (
 	"chain_simulation/entities"
 	"chain_simulation/entities/types"
 	"chain_simulation/experiments"
 	"chain_simulation/modules/attack_manager"
-	"chain_simulation/modules/chaincode_manager"
 	"chain_simulation/modules/consensus_manager"
 	"chain_simulation/modules/topology_manager"
 	"fmt"
 	"time"
 )
 
-var topologyType = types.TopologyType_HyperledgerFabric
-
-var FabricEvents = []*entities.Event{
+var ChainMakerOriginalEvents = []*entities.Event{
 	{
 		StartTime: time.Second * 10,
 		Action:    types.ActionType_StartTopology,
-		Handler:   func() error { return topology_manager.StartTopology(topologyType) },
+		Handler: func() error {
+			return topology_manager.StartTopology(topologyType, &entities.DynamicParameters{ConsensusThreadCount: 20})
+		},
 	},
 	{
-		StartTime: time.Second * 40,
-		Action:    types.ActionType_StartInstallChaincode,
-		Handler:   func() error { return chaincode_manager.InstallChainCode() },
-	},
-	{
-		StartTime: time.Second * 80,
+		StartTime: time.Second * 90,
 		Action:    types.ActionType_StartConsensus,
 		Handler:   func() error { return consensus_manager.StartConsensus() },
 	},
 	{
-		StartTime: time.Second * 100,
+		StartTime: time.Second * 110,
 		Action:    types.ActionType_StartAttack,
-		Handler:   func() error { return attack_manager.StartAttack(topologyType, 20) },
-	},
-	{
-		StartTime: time.Second * 140,
-		Action:    types.ActionType_StartAttack,
-		Handler:   func() error { return attack_manager.StartAttack(topologyType, 20) },
+		Handler:   func() error { return attack_manager.StartAttack(topologyType, attackDuration, 20) },
 	},
 	{
 		StartTime: time.Second * 200,
@@ -46,29 +35,38 @@ var FabricEvents = []*entities.Event{
 		Handler:   func() error { return consensus_manager.StopConsensus() },
 	},
 	{
-		StartTime: time.Second * 210,
+		StartTime: time.Second * 220,
 		Action:    types.ActionType_StopTopology,
 		Handler:   func() error { return topology_manager.StopTopology() },
 	},
 	{
-		StartTime: time.Second * 220,
+		StartTime: time.Second * 240,
 		Action:    types.ActionType_WaitTopologyRemove,
 		Handler:   func() error { return nil },
 	},
 }
 
-func NormalExperiment() error {
+func OriginalExperiment() error {
 	configurationSettings := []*entities.ConfigurationSetting{
 		{
-			Mapping: map[string]string{},
+			Mapping: map[string]string{
+				"propose_optimal":  "false",
+				"enable_blacklist": "false",
+			},
+		},
+		{
+			Mapping: map[string]string{
+				"propose_optimal":  "false",
+				"enable_blacklist": "false",
+			},
 		},
 	}
-
 	for _, configurationSetting := range configurationSettings {
-		err := experiments.SingleSimulation(configurationSetting, FabricEvents)
+		err := experiments.SingleSimulation(configurationSetting, ChainMakerOriginalEvents)
 		if err != nil {
-			return fmt.Errorf("fabric normal experiment failed: %v", err)
+			return fmt.Errorf("chainmaker original experiment failed: %v", err)
 		}
 	}
+
 	return nil
 }

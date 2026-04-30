@@ -1,0 +1,181 @@
+package multicast_batch_transmission
+
+import (
+	"chain_simulation/entities"
+	"chain_simulation/entities/types"
+	"chain_simulation/experiments"
+	"chain_simulation/modules/breakpoint_awareness"
+	"chain_simulation/modules/fast_selir"
+	"chain_simulation/modules/topology_manager"
+	"chain_simulation/modules/validation_manager"
+	"chain_simulation/utils/file"
+	"fmt"
+	"time"
+)
+
+func GenerateMulticastLiPBatchEvents() ([]*entities.Event, error) {
+	currentTime := time.Second * 10
+	var multicastLiPBatchEvents = []*entities.Event{{
+		StartTime: currentTime,
+		Action:    types.ActionType_StartTopology,
+		Handler: func() error {
+			return topology_manager.StartTopology(topologyType, &entities.DynamicParameters{ConsensusThreadCount: 0})
+		},
+	}}
+	currentTime += time.Second * 20
+	clearKernelLogEvent := &entities.Event{
+		StartTime: currentTime,
+		Action:    types.ActionType_ClearKernelLog,
+		Handler: func() error {
+			go func() {
+				fmt.Printf("clear kernel log\n")
+				kernelLogFilePath := "/var/log/kern.log"
+				// 进行原始文件的清空
+				err := file.ClearFile(kernelLogFilePath)
+				if err != nil {
+					fmt.Printf("cannot clear file: %v", err)
+				}
+			}()
+			return nil
+		},
+	}
+	multicastLiPBatchEvents = append(multicastLiPBatchEvents, clearKernelLogEvent)
+	calculateMapping, err := breakpoint_awareness.GetAlreadyCaclulatedFileTransmissionResult("/home/zhf/Projects/emulator/backend/cmd/final_result")
+	if err != nil {
+		return nil, fmt.Errorf("get break point failed due to: %v", err)
+	}
+	pathValidationProtocols := []string{"MULTICAST_SELIR"}
+	destinationCount := 4
+
+	destinationMapping := map[int][]string{
+		1: {"LirNode-3", "LirNode-5"},
+		2: {"LirNode-3", "LirNode-5", "LirNode-7"},
+		3: {"LirNode-3", "LirNode-5", "LirNode-7", "LirNode-9"},
+		4: {"LirNode-3", "LirNode-5", "LirNode-7", "LirNode-9", "LirNode-11"},
+	}
+
+	insertedHvfMapping := map[int]int{
+		1: 3,
+		2: 4,
+		3: 5,
+		4: 6,
+	}
+
+	for _, pathValidationProtocol := range pathValidationProtocols {
+		for currentDestination := 1; currentDestination <= destinationCount; currentDestination += 1 {
+			// 结果的记录文件
+			filePath := fmt.Sprintf("%s_%d_destinations_batch_result.txt", pathValidationProtocol, currentDestination)
+
+			// 判断是否已经计算了
+			if _, ok := calculateMapping[filePath]; ok {
+				fmt.Println("already calculated")
+				continue
+			}
+
+			// 进行布隆过滤器大小的修改
+			currentTime += time.Second * 10
+			modifyBloomFilterEvent := &entities.Event{
+				StartTime: currentTime,
+				Action:    types.ActionType_ModifyBloomFilter,
+				Handler: func() error {
+					bfEffectiveBits := fast_selir.CalculateFastSelirBFBits(insertedHvfMapping[currentDestination], 0.00001)
+					go func() {
+						for index := 1; index <= 1; index++ {
+							err = validation_manager.ModifyBloomFilter(index, bfEffectiveBits)
+							if err != nil {
+								fmt.Printf("modify bloom filter failed: %v", err)
+							}
+						}
+					}()
+					return nil
+				},
+			}
+			multicastLiPBatchEvents = append(multicastLiPBatchEvents, modifyBloomFilterEvent)
+
+			// 添加客户端事件
+			currentTime += time.Second * 1
+			clientEvent := &entities.Event{
+				StartTime: currentTime,
+				Action:    types.ActionType_StartClient,
+				Handler: func() error {
+					go func() {
+						batchSize := 1000
+						messageSize := 1024
+						interval := 0.1
+						fmt.Printf("current start client %s\n", filePath)
+						err = validation_manager.StartClient(1, 1, pathValidationProtocol, 31313, destinationMapping[currentDestination],
+							"batch", 1024, 1024, "",
+							batchSize, messageSize, interval)
+						if err != nil {
+							fmt.Printf("start client error: %v", err)
+						}
+					}()
+					return nil
+				},
+			}
+			multicastLiPBatchEvents = append(multicastLiPBatchEvents, clientEvent)
+
+			// 添加结果处理事件
+			currentTime += time.Second * 150
+			resultProcessingEvent := &entities.Event{
+				StartTime: currentTime,
+				Action:    types.ActionType_ResultHandling,
+				Handler: func() error {
+					kernelLogFilePath := "/var/log/kern.log"
+					err = file.CopyFileWithName(kernelLogFilePath, "/home/zhf/Projects/emulator/backend/cmd/final_result/", filePath)
+					if err != nil {
+						fmt.Printf("copy file with name error: %v", err)
+					}
+					// 进行原始文件的清空
+					err = file.ClearFile(kernelLogFilePath)
+					if err != nil {
+						fmt.Printf("cannot clear file: %v", err)
+					}
+					return nil
+				},
+			}
+			multicastLiPBatchEvents = append(multicastLiPBatchEvents, resultProcessingEvent)
+		}
+	}
+
+	currentTime += 40 * time.Second
+	removeEvent := &entities.Event{
+		StartTime: currentTime,
+		Action:    types.ActionType_StopTopology,
+		Handler: func() error {
+			return topology_manager.StopTopology()
+		},
+	}
+	multicastLiPBatchEvents = append(multicastLiPBatchEvents, removeEvent)
+
+	currentTime += 40 * time.Second
+	waitStopEvent := &entities.Event{
+		StartTime: currentTime,
+		Action:    types.ActionType_WaitTopologyRemove,
+		Handler: func() error {
+			return nil
+		},
+	}
+	multicastLiPBatchEvents = append(multicastLiPBatchEvents, waitStopEvent)
+
+	return multicastLiPBatchEvents, nil
+}
+
+func MulticastLiPBatchExperiment() error {
+	configurationSettings := []*entities.ConfigurationSetting{{
+		Mapping: map[string]string{},
+	}}
+	fmt.Printf("multicast LiP experiment")
+	multicastLiPBatchEvents, err := GenerateMulticastLiPBatchEvents()
+	if err != nil {
+		return fmt.Errorf("error to generate multicast LiP batch events: %v\n", err)
+	}
+	fmt.Printf("number of events: %d\n", len(multicastLiPBatchEvents))
+	for _, configurationSetting := range configurationSettings {
+		err = experiments.SingleSimulation(configurationSetting, multicastLiPBatchEvents)
+		if err != nil {
+			return fmt.Errorf("multicast LiP experiment failed: %v", err)
+		}
+	}
+	return nil
+}

@@ -33,7 +33,7 @@ func ModifyYml(filePath string, mapping map[string]string) error {
 		}
 	}
 	if !modified && (len(mapping) > 0) {
-		return fmt.Errorf("no key modified")
+		fmt.Printf("no key in configuration file is modified\n")
 	}
 	// 3. 写入文件之中
 	err = WriteStringIntoFile(filePath, finalString)

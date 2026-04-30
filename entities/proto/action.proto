@@ -10,4 +10,16 @@ enum ActionType {
   StartConsensus = 4;
   StopConsensus = 5;
   WaitTopologyRemove = 6;
+  StartClient = 7;
+  StartServer = 8;
+  InitOsmd = 9;
+  StartOsmd = 10;
+  StartRetrieveAcks = 11;
+  ChangeCorruptRatio = 12;
+  ModifyBloomFilter = 13;
+  ResultHandling = 14;
+  ClearKernelLog = 15;
+  RemoveKernelModule = 16;
+  InstallKernelModule = 17;
+  DoNothing = 18;
 }

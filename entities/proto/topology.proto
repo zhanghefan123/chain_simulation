@@ -6,4 +6,7 @@ enum TopologyType {
   ChainMaker = 0;
   HyperledgerFabric = 1;
   FiscoBcos = 2;
+  SimplePathValidation = 3;
+  MulticastPathValidation = 4;
+  SecPathMab = 5;
 }

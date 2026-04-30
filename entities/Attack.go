@@ -24,10 +24,10 @@ type Attack struct {
 	AttackedNode      string `json:"attacked_node"`
 }
 
-func NewAttackInstance(topologyType types.TopologyType, attackDuration int) *Attack {
+func NewAttackInstance(topologyType types.TopologyType, attackDuration int, attackThreadCount int) *Attack {
 	attackInstance := &Attack{
 		AttackDuration:    attackDuration,
-		AttackThreadCount: configs.TopConfigInstance.AttackConfig.ThreadCount,
+		AttackThreadCount: attackThreadCount,
 		AttackType:        configs.TopConfigInstance.AttackConfig.Type,
 		AttackNode:        "MaliciousNode-1",
 	}
