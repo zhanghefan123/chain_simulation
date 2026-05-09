@@ -67,12 +67,12 @@ func StartOsmd(nodeIndex int) error {
 	}
 }
 
-func SetScheduledMaliciousParams(nodeIndex, employedEpoch, corruptRatioStart, corrutpRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd int) error {
-	err := ValidationManagerInstance.SetScheduledMaliciousParamsInner(nodeIndex, employedEpoch, corruptRatioStart, corrutpRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd)
+func SetScheduledMaliciousParams(nodeIndex, employedEpochOrTimestampMs, corruptRatioStart, corrutpRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd int) error {
+	err := ValidationManagerInstance.SetScheduledMaliciousParamsInner(nodeIndex, employedEpochOrTimestampMs, corruptRatioStart, corrutpRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd)
 	if err != nil {
 		return fmt.Errorf("set scheduled malicious params inner failed: %v", err)
 	}
-	err = ValidationManagerInstance.SetScheduledMaliciousParamsToSource(nodeIndex, employedEpoch, corruptRatioStart, corrutpRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd)
+	err = ValidationManagerInstance.SetScheduledMaliciousParamsToSource(nodeIndex, employedEpochOrTimestampMs, corruptRatioStart, corrutpRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd)
 	if err != nil {
 		return fmt.Errorf("set scheduled malicious params source failed: %v", err)
 	}
@@ -211,7 +211,7 @@ func (vm *ValidationManager) StartRetrieveAcksInner(nodeIndex int) error {
 	return nil
 }
 
-func (vm *ValidationManager) SetScheduledMaliciousParamsInner(nodeIndex, employedEpoch, corruptRatioStart, corruptRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd int) error {
+func (vm *ValidationManager) SetScheduledMaliciousParamsInner(nodeIndex, employedEpochOrTimestampMs, corruptRatioStart, corruptRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd int) error {
 	// 进行监听接口的获取
 	containerListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
 	// 进行 url 的构造
@@ -220,7 +220,7 @@ func (vm *ValidationManager) SetScheduledMaliciousParamsInner(nodeIndex, employe
 		containerListenPort,
 		SetSchduledMaliciousParamsUrl)
 	// 进行 changeCorruptRatioInstance 的构造
-	scheduledMaliciousParmasInstance := entities.NewScheduledMaliciousParams(employedEpoch, nodeIndex, corruptRatioStart,
+	scheduledMaliciousParmasInstance := entities.NewScheduledMaliciousParams(employedEpochOrTimestampMs, nodeIndex, corruptRatioStart,
 		corruptRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd)
 	// 进行 request
 	err := request.PostJson(setScheduledMaliciousParamsUrl, scheduledMaliciousParmasInstance)
@@ -230,7 +230,7 @@ func (vm *ValidationManager) SetScheduledMaliciousParamsInner(nodeIndex, employe
 	return nil
 }
 
-func (vm *ValidationManager) SetScheduledMaliciousParamsToSource(nodeIndex, employedEpoch, corruptRatioStart, corruptRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd int) error {
+func (vm *ValidationManager) SetScheduledMaliciousParamsToSource(nodeIndex, employedEpochOrTimestampMs, corruptRatioStart, corruptRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd int) error {
 	// 进行监听接口的获取
 	sourceListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + 1
 	// 进行 url 的构造
@@ -239,7 +239,7 @@ func (vm *ValidationManager) SetScheduledMaliciousParamsToSource(nodeIndex, empl
 		sourceListenPort,
 		SetSchduledMaliciousParamsUrl)
 	// 进行 changeCorruptRatioInstance
-	scheduledMaliciousParmasInstance := entities.NewScheduledMaliciousParams(employedEpoch, nodeIndex, corruptRatioStart,
+	scheduledMaliciousParmasInstance := entities.NewScheduledMaliciousParams(employedEpochOrTimestampMs, nodeIndex, corruptRatioStart,
 		corruptRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd)
 	// 进行 request
 	err := request.PostJson(setScheduledMaliciousParamsUrl, scheduledMaliciousParmasInstance)
