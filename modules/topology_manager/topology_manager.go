@@ -8,7 +8,10 @@ import (
 	"fmt"
 )
 
-var TopologyManagerInstance = &TopologyManager{}
+var (
+	TopologyManagerInstance                    = &TopologyManager{}
+	TopologyInstance        *entities.Topology = nil
+)
 
 type TopologyManager struct {
 }
@@ -34,13 +37,13 @@ func (tm *TopologyManager) Start(topologyType types.TopologyType, dynamicParamet
 		configs.TopConfigInstance.NetworkConfig.BackendAddr,
 		configs.TopConfigInstance.NetworkConfig.BackendPort,
 		configs.TopConfigInstance.UrlConfig.StartTopologyUrl)
-
-	topology, err := entities.NewTopology(topologyType, dynamicParameters)
+	var err error
+	TopologyInstance, err = entities.NewTopology(topologyType, dynamicParameters)
 	if err != nil {
 		return fmt.Errorf("create topology failed: %v\n", err)
 	}
-	fmt.Println(topology)
-	err = request.PostJson(startTopologyUrl, topology)
+	fmt.Println(TopologyInstance)
+	err = request.PostJson(startTopologyUrl, TopologyInstance)
 	if err != nil {
 		return fmt.Errorf("post topology failed: %v\n", err)
 	}

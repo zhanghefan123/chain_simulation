@@ -17,6 +17,7 @@ var (
 	StartRetrieveAcksUrl          = "startRetrieveAcks"
 	SetSchduledMaliciousParamsUrl = "setSchduledMaliciousParams"
 	ModifyBloomFilterUrl          = "modifyBloomFilter"
+	StartSyncUrl                  = "startSync"
 )
 
 type ValidationManager struct{}
@@ -46,10 +47,10 @@ func InitOsmd(nodeIndex int, numberOfEpochs int,
 	learningRate float64, minimumDeliveryRatio float64,
 	destinationPort int, destinations []string,
 	messageSize int, numberOfPktsPerLink int, miniBatchSize int, packetSendingInterval float64, secPathMabStrategy types.SecPathMabStrategy,
-	enableDadeAlgorithm bool, enableDedaAlgorithm bool, minAckForRttEstimation int) error {
+	enableDadeAlgorithm bool, enableDedaAlgorithm bool, minAckForRttEstimation int, experimentTimeElapsedMs int) error {
 	err := ValidationManagerInstance.InitOsmdInner(nodeIndex, numberOfEpochs, learningRate, minimumDeliveryRatio,
 		destinationPort, destinations, messageSize, numberOfPktsPerLink, miniBatchSize, packetSendingInterval, secPathMabStrategy,
-		enableDadeAlgorithm, enableDedaAlgorithm, minAckForRttEstimation)
+		enableDadeAlgorithm, enableDedaAlgorithm, minAckForRttEstimation, experimentTimeElapsedMs)
 	if err != nil {
 		return fmt.Errorf("init osmd failed: %v", err)
 	} else {
@@ -157,7 +158,7 @@ func (vm *ValidationManager) InitOsmdInner(nodeIndex int, numberOfEpochs int,
 	learningRate float64, minimumDeliveryRatio float64,
 	destinationPort int, destinations []string,
 	messageSize int, numberOfPktsPerLink int, miniBatchSize int, packetSendingInterval float64,
-	strategy types.SecPathMabStrategy, enableDadeAlgorithm bool, enableDedaAlgorithm bool, minAckForRttEstimation int) error {
+	strategy types.SecPathMabStrategy, enableDadeAlgorithm bool, enableDedaAlgorithm bool, minAckForRttEstimation int, experimentTimeElapsedMs int) error {
 	// 进行监听端口的获取
 	containerListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
 	// 进行 url 的构造
@@ -169,7 +170,7 @@ func (vm *ValidationManager) InitOsmdInner(nodeIndex int, numberOfEpochs int,
 	initOsmdInstance := entities.NewInitOsmd(numberOfEpochs, learningRate, minimumDeliveryRatio,
 		destinationPort, destinations, messageSize,
 		numberOfPktsPerLink, miniBatchSize,
-		packetSendingInterval, strategy, enableDadeAlgorithm, enableDedaAlgorithm, minAckForRttEstimation)
+		packetSendingInterval, strategy, enableDadeAlgorithm, enableDedaAlgorithm, minAckForRttEstimation, experimentTimeElapsedMs)
 	// 进行 request
 	err := request.PostJson(initOsmdUrl, initOsmdInstance)
 	if err != nil {
@@ -244,6 +245,34 @@ func (vm *ValidationManager) SetScheduledMaliciousParamsToSource(nodeIndex, empl
 	err := request.PostJson(setScheduledMaliciousParamsUrl, scheduledMaliciousParmasInstance)
 	if err != nil {
 		return fmt.Errorf("post set scheduled malicious params failed %v", err)
+	}
+	return nil
+}
+
+func StartSync(nodeIndex int, mode types.RateAdjustMode) error {
+	err := ValidationManagerInstance.StartSyncInner(nodeIndex, mode)
+	if err != nil {
+		return fmt.Errorf("start synchronize failed: %v", err)
+	} else {
+		return nil
+	}
+}
+
+func (vm *ValidationManager) StartSyncInner(nodeIndex int, mode types.RateAdjustMode) error {
+	// 进行监听端口的获取
+	containerListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
+
+	// 进行 url 的构造
+	startSynchronizeUrl := fmt.Sprintf("http://%s:%d/%s",
+		configs.TopConfigInstance.NetworkConfig.BackendAddr,
+		containerListenPort,
+		StartSyncUrl)
+
+	syncInstance := entities.NewSyncInstance(mode)
+	fmt.Println(syncInstance)
+	err := request.PostJson(startSynchronizeUrl, syncInstance)
+	if err != nil {
+		return fmt.Errorf("post start synchronize url failed %v", err)
 	}
 	return nil
 }

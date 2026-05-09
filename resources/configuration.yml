@@ -25,5 +25,5 @@ consensus_config:
 
 sec_path_mab_config:
   number_of_hops: 3
-  low_corrupt_ratio: 50000
-  high_corrupt_ratio: 250000
+  low_corrupt_ratio: 25000
+  high_corrupt_ratio: 300000

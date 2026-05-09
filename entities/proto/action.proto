@@ -21,5 +21,6 @@ enum ActionType {
   ClearKernelLog = 15;
   RemoveKernelModule = 16;
   InstallKernelModule = 17;
-  DoNothing = 18;
+  SynchronizeTimestampAndRateAdjustMode = 18;
+  DoNothing = 19;
 }

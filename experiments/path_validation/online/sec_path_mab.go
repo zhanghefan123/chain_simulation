@@ -13,8 +13,25 @@ import (
 	"time"
 )
 
-var topologyType = types.TopologyType_SecPathMab
-var selectedSecPathMabType = types.SecPathMabStrategy_FIXED_BATCH
+var (
+	topologyType            = types.TopologyType_SecPathMab
+	sourceNodeIndex         = 1
+	numberOfEpochs          = 500
+	numberOfPacketsPerLink  = 100
+	miniBatchSize           = 50
+	learningRate            = 0.2
+	minimumDeliveryRatio    = 0.8
+	destinationPort         = 31313
+	destinations            = []string{"LirNode-10"}
+	messageSize             = 512
+	interval                = 0.0
+	secPathMabType          = types.SecPathMabStrategy_FIXED_BATCH
+	enableDadeAlgorithm     = false
+	enableDedaAlgorithm     = false
+	minAckForRttEstimation  = 100
+	rateAdjustMode          = types.RateAdjustMode_Timestamp
+	experimentTimeElapsedMs = 30 * 1000 // 单位为 ms
+)
 
 func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.ConfigurationSetting) ([]*entities.Event, error) {
 	secPathMabBatchEvents := make([]*entities.Event, 0)
@@ -54,7 +71,7 @@ func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.Conf
 		Handler: func() error {
 			return topology_manager.StartTopology(topologyType,
 				&entities.DynamicParameters{
-					SecPathMabType: selectedSecPathMabType,
+					SecPathMabType: secPathMabType,
 					PerLinkDelay:   perLinkDelayInMs,
 				})
 		},
@@ -69,23 +86,10 @@ func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.Conf
 		Handler: func() error {
 			go func() {
 				fmt.Printf("current start osmd\n")
-				sourceNodeIndex := 1
-				numberOfEpochs := 500
-				numberOfPacketsPerLink := 100
-				miniBatchSize := 50
-				learningRate := 0.8
-				minimumDeliveryRatio := 0.8
-				destinationPort := 31313
-				destinations := []string{"LirNode-10"}
-				messageSize := 512
-				interval := 0.0
-				secPathMabType := selectedSecPathMabType
-				enableDadeAlgorithm := false
-				enableDedaAlgorithm := false
-				minAckForRttEstimation := 100
+
 				err = validation_manager.InitOsmd(sourceNodeIndex, numberOfEpochs, learningRate, minimumDeliveryRatio, destinationPort, destinations,
 					messageSize, numberOfPacketsPerLink, miniBatchSize, interval, secPathMabType, enableDadeAlgorithm,
-					enableDedaAlgorithm, minAckForRttEstimation)
+					enableDedaAlgorithm, minAckForRttEstimation, experimentTimeElapsedMs)
 				if err != nil {
 					fmt.Printf("start osmd failed due to: %v", err)
 				}
@@ -101,52 +105,41 @@ func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.Conf
 		StartTime: currentTime,
 		Action:    types.ActionType_ChangeCorruptRatio,
 		Handler: func() error {
-			go func() {
-				startEpoch := 100
-				updateInterval := 100
-				maxUpdateCount := 3
-				currentUpdateCount := 0
-				currentEpoch := startEpoch
-				for {
-					if currentUpdateCount%2 == 0 {
-						err = validation_manager.SetScheduledMaliciousParams(5, currentEpoch,
-							250000, 250000,
-							0, 0)
-						if err != nil {
-							fmt.Printf("change corrupt ratio failed due to: %v", err)
-						}
-						err = validation_manager.SetScheduledMaliciousParams(6, currentEpoch,
-							50000, 50000,
-							0, 0)
-						if err != nil {
-							fmt.Printf("change corrupt ratio failed due to: %v", err)
-						}
-					} else {
-						err = validation_manager.SetScheduledMaliciousParams(5, currentEpoch,
-							50000, 50000,
-							0, 0)
-						if err != nil {
-							fmt.Printf("change corrupt ratio failed due to: %v", err)
-						}
-						err = validation_manager.SetScheduledMaliciousParams(6, currentEpoch,
-							250000, 250000,
-							0, 0)
-						if err != nil {
-							fmt.Printf("change corrupt ratio failed due to: %v", err)
-						}
-					}
-
-					currentUpdateCount += 1
-					currentEpoch += updateInterval
-					if currentUpdateCount >= maxUpdateCount {
-						break
-					}
+			if rateAdjustMode == types.RateAdjustMode_Epoch {
+				err = ChangeCorruptRatioInEpochLevel()
+				if err != nil {
+					fmt.Printf("change corrupt ratio in epoch level failed due to: %v", err)
 				}
-			}()
+			} else {
+				err = ChangeCorruptRatioInTimStampLevel()
+				if err != nil {
+					fmt.Printf("change corrupt ratio in timestamp level failed due to: %v", err)
+				}
+			}
 			return nil
 		},
 	}
 	secPathMabBatchEvents = append(secPathMabBatchEvents, changeCorruptRatioEvent)
+
+	// 3. 进行同步
+	currentTime += 5 * time.Second
+	syncEvent := &entities.Event{
+		StartTime: currentTime,
+		Action:    types.ActionType_SynchronizeTimestampAndRateAdjustMode,
+		Handler: func() error {
+			for i := range len(topology_manager.TopologyInstance.Nodes) {
+				nodeIndex := i + 1
+				go func() {
+					err = validation_manager.StartSync(nodeIndex, rateAdjustMode)
+					if err != nil {
+						fmt.Printf("start synchronize failed due to: %v", err)
+					}
+				}()
+			}
+			return nil
+		},
+	}
+	secPathMabBatchEvents = append(secPathMabBatchEvents, syncEvent)
 
 	// 4. 准备进行 osmd 实例的启动
 	currentTime += 5 * time.Second
@@ -155,7 +148,6 @@ func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.Conf
 		Action:    types.ActionType_StartOsmd,
 		Handler: func() error {
 			go func() {
-				sourceNodeIndex := 1
 				err = validation_manager.StartOsmd(sourceNodeIndex)
 				if err != nil {
 					fmt.Printf("start osmd failed due to: %v", err)
@@ -167,13 +159,18 @@ func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.Conf
 	secPathMabBatchEvents = append(secPathMabBatchEvents, startOsmdEvent)
 
 	// 5. 进行结果的拷贝
-	if selectedSecPathMabType == types.SecPathMabStrategy_DYNAMIC_BATCH {
-		fmt.Printf("sec_path_mab_type == %s\n", selectedSecPathMabType.String())
-		currentTime += time.Duration(perLinkDelayInMs) * 20 * time.Second
+	if rateAdjustMode == types.RateAdjustMode_Epoch {
+		if secPathMabType == types.SecPathMabStrategy_DYNAMIC_BATCH {
+			fmt.Printf("sec_path_mab_type == %s\n", secPathMabType.String())
+			currentTime += time.Duration(1+setting.Index) * 20 * time.Second
+		} else {
+			fmt.Printf("sec_path_mab_type == %s\n", secPathMabType.String())
+			currentTime += 20 * time.Second
+		}
 	} else {
-		fmt.Printf("sec_path_mab_type == %s\n", selectedSecPathMabType.String())
-		currentTime += 20 * time.Second
+		currentTime += time.Duration(experimentTimeElapsedMs/1000+10) * time.Second
 	}
+
 	copyEvent := &entities.Event{
 		StartTime: currentTime,
 		Action:    types.ActionType_ResultHandling,
@@ -237,24 +234,114 @@ func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.Conf
 	return secPathMabBatchEvents, nil
 }
 
+func ChangeCorruptRatioInEpochLevel() error {
+	var err error
+	startEpoch := 100
+	updateInterval := 100
+	maxUpdateCount := 3
+	currentUpdateCount := 0
+	currentEpoch := startEpoch
+	for {
+		if currentUpdateCount%2 == 0 {
+			err = validation_manager.SetScheduledMaliciousParams(5, currentEpoch,
+				250000, 250000,
+				0, 0)
+			if err != nil {
+				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
+			}
+			err = validation_manager.SetScheduledMaliciousParams(6, currentEpoch,
+				50000, 50000,
+				0, 0)
+			if err != nil {
+				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
+			}
+		} else {
+			err = validation_manager.SetScheduledMaliciousParams(5, currentEpoch,
+				50000, 50000,
+				0, 0)
+			if err != nil {
+				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
+			}
+			err = validation_manager.SetScheduledMaliciousParams(6, currentEpoch,
+				250000, 250000,
+				0, 0)
+			if err != nil {
+				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
+			}
+		}
+
+		currentUpdateCount += 1
+		currentEpoch += updateInterval
+		if currentUpdateCount >= maxUpdateCount {
+			break
+		}
+	}
+	return nil
+}
+
+func ChangeCorruptRatioInTimStampLevel() error {
+	startTimestamp := 10000
+	updateInterval := 5000
+	maxUpdateCount := 3
+	currentUpdateCount := 0
+	currentTimestamp := startTimestamp
+	for {
+		if currentUpdateCount%2 == 0 {
+			err := validation_manager.SetScheduledMaliciousParams(5, currentTimestamp,
+				300000, 300000,
+				0, 0)
+			if err != nil {
+				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
+			}
+			err = validation_manager.SetScheduledMaliciousParams(6, currentTimestamp,
+				25000, 25000,
+				0, 0)
+			if err != nil {
+				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
+			}
+		} else {
+			err := validation_manager.SetScheduledMaliciousParams(5, currentTimestamp,
+				25000, 25000,
+				0, 0)
+			if err != nil {
+				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
+			}
+			err = validation_manager.SetScheduledMaliciousParams(6, currentTimestamp,
+				300000, 300000,
+				0, 0)
+			if err != nil {
+				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
+			}
+		}
+
+		currentUpdateCount += 1
+		currentTimestamp += updateInterval
+		if currentUpdateCount >= maxUpdateCount {
+			break
+		}
+	}
+	return nil
+}
+
 // SecPathMabExperiment 进行多次的实验
 func SecPathMabExperiment() error {
 	configurationSettings := []*entities.ConfigurationSetting{
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay": "1",
-		//	},
-		//},
+		{
+			Index: 1,
+			Mapping: map[string]string{
+				"per_link_delay": "1",
+			},
+		},
 		//{
 		//	Mapping: map[string]string{
 		//		"per_link_delay": "2.5",
 		//	},
 		//},
-		{
-			Mapping: map[string]string{
-				"per_link_delay": "5",
-			},
-		},
+		//{
+		//	Mapping: map[string]string{
+		//		"per_link_delay": "5",
+		//	},
+		//},
 		//{
 		//	Mapping: map[string]string{
 		//		"per_link_delay": "20",
