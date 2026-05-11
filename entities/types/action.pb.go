@@ -24,26 +24,26 @@ const (
 type ActionType int32
 
 const (
-	ActionType_StartTopology                         ActionType = 0
-	ActionType_StopTopology                          ActionType = 1
-	ActionType_StartInstallChaincode                 ActionType = 2
-	ActionType_StartAttack                           ActionType = 3
-	ActionType_StartConsensus                        ActionType = 4
-	ActionType_StopConsensus                         ActionType = 5
-	ActionType_WaitTopologyRemove                    ActionType = 6
-	ActionType_StartClient                           ActionType = 7
-	ActionType_StartServer                           ActionType = 8
-	ActionType_InitOsmd                              ActionType = 9
-	ActionType_StartOsmd                             ActionType = 10
-	ActionType_StartRetrieveAcks                     ActionType = 11
-	ActionType_ChangeCorruptRatio                    ActionType = 12
-	ActionType_ModifyBloomFilter                     ActionType = 13
-	ActionType_ResultHandling                        ActionType = 14
-	ActionType_ClearKernelLog                        ActionType = 15
-	ActionType_RemoveKernelModule                    ActionType = 16
-	ActionType_InstallKernelModule                   ActionType = 17
-	ActionType_SynchronizeTimestampAndRateAdjustMode ActionType = 18
-	ActionType_DoNothing                             ActionType = 19
+	ActionType_StartTopology         ActionType = 0
+	ActionType_StopTopology          ActionType = 1
+	ActionType_StartInstallChaincode ActionType = 2
+	ActionType_StartAttack           ActionType = 3
+	ActionType_StartConsensus        ActionType = 4
+	ActionType_StopConsensus         ActionType = 5
+	ActionType_WaitTopologyRemove    ActionType = 6
+	ActionType_StartClient           ActionType = 7
+	ActionType_StartServer           ActionType = 8
+	ActionType_InitOsmd              ActionType = 9
+	ActionType_StartOsmd             ActionType = 10
+	ActionType_StartRetrieveAcks     ActionType = 11
+	ActionType_ChangeCorruptRatio    ActionType = 12
+	ActionType_ModifyBloomFilter     ActionType = 13
+	ActionType_ResultHandling        ActionType = 14
+	ActionType_ClearKernelLog        ActionType = 15
+	ActionType_RemoveKernelModule    ActionType = 16
+	ActionType_InstallKernelModule   ActionType = 17
+	ActionType_SynchronizeTimestamp  ActionType = 18
+	ActionType_DoNothing             ActionType = 19
 )
 
 // Enum value maps for ActionType.
@@ -67,30 +67,30 @@ var (
 		15: "ClearKernelLog",
 		16: "RemoveKernelModule",
 		17: "InstallKernelModule",
-		18: "SynchronizeTimestampAndRateAdjustMode",
+		18: "SynchronizeTimestamp",
 		19: "DoNothing",
 	}
 	ActionType_value = map[string]int32{
-		"StartTopology":                         0,
-		"StopTopology":                          1,
-		"StartInstallChaincode":                 2,
-		"StartAttack":                           3,
-		"StartConsensus":                        4,
-		"StopConsensus":                         5,
-		"WaitTopologyRemove":                    6,
-		"StartClient":                           7,
-		"StartServer":                           8,
-		"InitOsmd":                              9,
-		"StartOsmd":                             10,
-		"StartRetrieveAcks":                     11,
-		"ChangeCorruptRatio":                    12,
-		"ModifyBloomFilter":                     13,
-		"ResultHandling":                        14,
-		"ClearKernelLog":                        15,
-		"RemoveKernelModule":                    16,
-		"InstallKernelModule":                   17,
-		"SynchronizeTimestampAndRateAdjustMode": 18,
-		"DoNothing":                             19,
+		"StartTopology":         0,
+		"StopTopology":          1,
+		"StartInstallChaincode": 2,
+		"StartAttack":           3,
+		"StartConsensus":        4,
+		"StopConsensus":         5,
+		"WaitTopologyRemove":    6,
+		"StartClient":           7,
+		"StartServer":           8,
+		"InitOsmd":              9,
+		"StartOsmd":             10,
+		"StartRetrieveAcks":     11,
+		"ChangeCorruptRatio":    12,
+		"ModifyBloomFilter":     13,
+		"ResultHandling":        14,
+		"ClearKernelLog":        15,
+		"RemoveKernelModule":    16,
+		"InstallKernelModule":   17,
+		"SynchronizeTimestamp":  18,
+		"DoNothing":             19,
 	}
 )
 
@@ -125,7 +125,7 @@ var File_action_proto protoreflect.FileDescriptor
 
 const file_action_proto_rawDesc = "" +
 	"\n" +
-	"\faction.proto*\xb4\x03\n" +
+	"\faction.proto*\xa3\x03\n" +
 	"\n" +
 	"ActionType\x12\x11\n" +
 	"\rStartTopology\x10\x00\x12\x10\n" +
@@ -146,8 +146,8 @@ const file_action_proto_rawDesc = "" +
 	"\x0eResultHandling\x10\x0e\x12\x12\n" +
 	"\x0eClearKernelLog\x10\x0f\x12\x16\n" +
 	"\x12RemoveKernelModule\x10\x10\x12\x17\n" +
-	"\x13InstallKernelModule\x10\x11\x12)\n" +
-	"%SynchronizeTimestampAndRateAdjustMode\x10\x12\x12\r\n" +
+	"\x13InstallKernelModule\x10\x11\x12\x18\n" +
+	"\x14SynchronizeTimestamp\x10\x12\x12\r\n" +
 	"\tDoNothing\x10\x13B\n" +
 	"Z\b../typesb\x06proto3"
 

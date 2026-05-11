@@ -249,8 +249,8 @@ func (vm *ValidationManager) SetScheduledMaliciousParamsToSource(nodeIndex, empl
 	return nil
 }
 
-func StartSync(nodeIndex int, mode types.RateAdjustMode) error {
-	err := ValidationManagerInstance.StartSyncInner(nodeIndex, mode)
+func StartSync(nodeIndex int) error {
+	err := ValidationManagerInstance.StartSyncInner(nodeIndex)
 	if err != nil {
 		return fmt.Errorf("start synchronize failed: %v", err)
 	} else {
@@ -258,7 +258,7 @@ func StartSync(nodeIndex int, mode types.RateAdjustMode) error {
 	}
 }
 
-func (vm *ValidationManager) StartSyncInner(nodeIndex int, mode types.RateAdjustMode) error {
+func (vm *ValidationManager) StartSyncInner(nodeIndex int) error {
 	// 进行监听端口的获取
 	containerListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
 
@@ -268,9 +268,7 @@ func (vm *ValidationManager) StartSyncInner(nodeIndex int, mode types.RateAdjust
 		containerListenPort,
 		StartSyncUrl)
 
-	syncInstance := entities.NewSyncInstance(mode)
-	fmt.Println(syncInstance)
-	err := request.PostJson(startSynchronizeUrl, syncInstance)
+	err := request.PostJson(startSynchronizeUrl, nil)
 	if err != nil {
 		return fmt.Errorf("post start synchronize url failed %v", err)
 	}

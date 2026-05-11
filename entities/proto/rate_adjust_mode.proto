@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-option go_package = "../types";
-
-enum RateAdjustMode {
-  Epoch = 0;
-  Timestamp = 1;
-}

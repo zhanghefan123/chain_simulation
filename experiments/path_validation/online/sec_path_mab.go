@@ -18,18 +18,17 @@ var (
 	sourceNodeIndex         = 1
 	numberOfEpochs          = 500
 	numberOfPacketsPerLink  = 100
-	miniBatchSize           = 50
+	miniBatchSize           = 100
 	learningRate            = 0.2
 	minimumDeliveryRatio    = 0.8
 	destinationPort         = 31313
 	destinations            = []string{"LirNode-10"}
 	messageSize             = 512
-	interval                = 0.0
-	secPathMabType          = types.SecPathMabStrategy_FIXED_BATCH
+	interval                = 0.00001
+	secPathMabType          = types.SecPathMabStrategy_DYNAMIC_BATCH
 	enableDadeAlgorithm     = false
 	enableDedaAlgorithm     = false
 	minAckForRttEstimation  = 100
-	rateAdjustMode          = types.RateAdjustMode_Timestamp
 	experimentTimeElapsedMs = 30 * 1000 // 单位为 ms
 )
 
@@ -105,16 +104,9 @@ func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.Conf
 		StartTime: currentTime,
 		Action:    types.ActionType_ChangeCorruptRatio,
 		Handler: func() error {
-			if rateAdjustMode == types.RateAdjustMode_Epoch {
-				err = ChangeCorruptRatioInEpochLevel()
-				if err != nil {
-					fmt.Printf("change corrupt ratio in epoch level failed due to: %v", err)
-				}
-			} else {
-				err = ChangeCorruptRatioInTimStampLevel()
-				if err != nil {
-					fmt.Printf("change corrupt ratio in timestamp level failed due to: %v", err)
-				}
+			err = ChangeCorruptRatioInTimStampLevel()
+			if err != nil {
+				fmt.Printf("change corrupt ratio in timestamp level failed due to: %v", err)
 			}
 			return nil
 		},
@@ -125,12 +117,12 @@ func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.Conf
 	currentTime += 5 * time.Second
 	syncEvent := &entities.Event{
 		StartTime: currentTime,
-		Action:    types.ActionType_SynchronizeTimestampAndRateAdjustMode,
+		Action:    types.ActionType_SynchronizeTimestamp,
 		Handler: func() error {
 			for i := range len(topology_manager.TopologyInstance.Nodes) {
 				nodeIndex := i + 1
 				go func() {
-					err = validation_manager.StartSync(nodeIndex, rateAdjustMode)
+					err = validation_manager.StartSync(nodeIndex)
 					if err != nil {
 						fmt.Printf("start synchronize failed due to: %v", err)
 					}
@@ -159,17 +151,7 @@ func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.Conf
 	secPathMabBatchEvents = append(secPathMabBatchEvents, startOsmdEvent)
 
 	// 5. 进行结果的拷贝
-	if rateAdjustMode == types.RateAdjustMode_Epoch {
-		if secPathMabType == types.SecPathMabStrategy_DYNAMIC_BATCH {
-			fmt.Printf("sec_path_mab_type == %s\n", secPathMabType.String())
-			currentTime += time.Duration(1+setting.Index) * 20 * time.Second
-		} else {
-			fmt.Printf("sec_path_mab_type == %s\n", secPathMabType.String())
-			currentTime += 20 * time.Second
-		}
-	} else {
-		currentTime += time.Duration(experimentTimeElapsedMs/1000+10) * time.Second
-	}
+	currentTime += time.Duration(experimentTimeElapsedMs/1000+10) * time.Second
 
 	copyEvent := &entities.Event{
 		StartTime: currentTime,
