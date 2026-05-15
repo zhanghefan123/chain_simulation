@@ -24,8 +24,8 @@ var (
 	destinationPort         = 31313
 	destinations            = []string{"LirNode-10"}
 	messageSize             = 512
-	interval                = 0.00001
-	secPathMabType          = types.SecPathMabStrategy_DYNAMIC_BATCH
+	interval                = 0.00005 // 需要理解这个 interval 是 packet interval 还是 batch interval
+	secPathMabType          = types.SecPathMabStrategy_FIXED_BATCH
 	enableDadeAlgorithm     = false
 	enableDedaAlgorithm     = false
 	minAckForRttEstimation  = 100
@@ -78,6 +78,24 @@ func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.Conf
 	secPathMabBatchEvents = append(secPathMabBatchEvents, startTopologyEvent)
 
 	// 3. 进行 osmd 实例的初始化
+	var numberOfPacketsPerLinkInt64 int64
+	if numberOfPacketsPerLinkStr, ok := setting.Mapping["number_of_packets_per_link"]; ok {
+		numberOfPacketsPerLinkInt64, err = strconv.ParseInt(numberOfPacketsPerLinkStr, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("parse number of packets per link error: %w", err)
+		}
+		numberOfPacketsPerLink = int(numberOfPacketsPerLinkInt64)
+	}
+
+	var minAckForRttEstimationInt64 int64
+	if minAckForRttEstimationInt64Str, ok := setting.Mapping["min_ack_for_rtt_estimation"]; ok {
+		minAckForRttEstimationInt64, err = strconv.ParseInt(minAckForRttEstimationInt64Str, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("parse min ackk for rtt estimation error: %w", err)
+		}
+		minAckForRttEstimation = int(minAckForRttEstimationInt64)
+	}
+
 	currentTime += 20 * time.Second
 	initOsmdEvent := &entities.Event{
 		StartTime: currentTime,
@@ -263,8 +281,8 @@ func ChangeCorruptRatioInEpochLevel() error {
 
 func ChangeCorruptRatioInTimStampLevel() error {
 	startTimestamp := 10000
-	updateInterval := 5000
-	maxUpdateCount := 3
+	updateInterval := 600
+	maxUpdateCount := 20
 	currentUpdateCount := 0
 	currentTimestamp := startTimestamp
 	for {
@@ -281,6 +299,7 @@ func ChangeCorruptRatioInTimStampLevel() error {
 			if err != nil {
 				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
 			}
+			// 295 (25000) 17:20:04 207468 (300000) 17:20:09 407697 (25000) 17:20:15
 		} else {
 			err := validation_manager.SetScheduledMaliciousParams(5, currentTimestamp,
 				25000, 25000,
@@ -308,20 +327,95 @@ func ChangeCorruptRatioInTimStampLevel() error {
 // SecPathMabExperiment 进行多次的实验
 func SecPathMabExperiment() error {
 	configurationSettings := []*entities.ConfigurationSetting{
+		//{
+		//	Index: 1,
+		//	Mapping: map[string]string{
+		//		"per_link_delay": "1",
+		//	},
+		//},
+		// ------------------------------------------
 		{
-			Index: 1,
 			Mapping: map[string]string{
-				"per_link_delay": "1",
+				"per_link_delay":             "20",
+				"min_ack_for_rtt_estimation": "100",
 			},
 		},
 		//{
 		//	Mapping: map[string]string{
-		//		"per_link_delay": "2.5",
+		//		"per_link_delay":             "2.5",
+		//		"number_of_packets_per_link": "150",
 		//	},
 		//},
 		//{
 		//	Mapping: map[string]string{
-		//		"per_link_delay": "5",
+		//		"per_link_delay":             "2.5",
+		//		"number_of_packets_per_link": "200",
+		//	},
+		//},
+		//{
+		//	Mapping: map[string]string{
+		//		"per_link_delay":             "2.5",
+		//		"number_of_packets_per_link": "250",
+		//	},
+		//},
+		//{
+		//	Mapping: map[string]string{
+		//		"per_link_delay":             "2.5",
+		//		"number_of_packets_per_link": "300",
+		//	},
+		//},
+		//{
+		//	Mapping: map[string]string{
+		//		"per_link_delay":             "2.5",
+		//		"number_of_packets_per_link": "400",
+		//	},
+		//},
+		//{
+		//	Mapping: map[string]string{
+		//		"per_link_delay":             "2.5",
+		//		"number_of_packets_per_link": "500",
+		//	},
+		//},
+		//{
+		//	Mapping: map[string]string{
+		//		"per_link_delay":             "2.5",
+		//		"number_of_packets_per_link": "600",
+		//	},
+		//},
+		// ------------------------------------------
+		//{
+		//	Mapping: map[string]string{
+		//		"per_link_delay":             "2.5",
+		//		"min_ack_for_rtt_estimation": "100",
+		//	},
+		//},
+		//{
+		//	Mapping: map[string]string{
+		//		"per_link_delay":             "2.5",
+		//		"min_ack_for_rtt_estimation": "150",
+		//	},
+		//},
+		//{
+		//	Mapping: map[string]string{
+		//		"per_link_delay":             "2.5",
+		//		"min_ack_for_rtt_estimation": "200",
+		//	},
+		//},
+		//{
+		//	Mapping: map[string]string{
+		//		"per_link_delay":             "2.5",
+		//		"min_ack_for_rtt_estimation": "250",
+		//	},
+		//},
+		//{
+		//	Mapping: map[string]string{
+		//		"per_link_delay":             "2.5",
+		//		"min_ack_for_rtt_estimation": "300",
+		//	},
+		//},
+		//{
+		//	Mapping: map[string]string{
+		//		"per_link_delay": "10",
 		//	},
 		//},
 		//{

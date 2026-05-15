@@ -6,6 +6,7 @@ import (
 	"chain_simulation/entities/types"
 	"chain_simulation/utils/request"
 	"fmt"
+	"time"
 )
 
 var (
@@ -268,7 +269,11 @@ func (vm *ValidationManager) StartSyncInner(nodeIndex int) error {
 		containerListenPort,
 		StartSyncUrl)
 
-	err := request.PostJson(startSynchronizeUrl, nil)
+	currentTimestamp := time.Now().UnixMilli()
+
+	err := request.PostJson(startSynchronizeUrl, &entities.SyncInstance{
+		CurrentTimestamp: currentTimestamp,
+	})
 	if err != nil {
 		return fmt.Errorf("post start synchronize url failed %v", err)
 	}
