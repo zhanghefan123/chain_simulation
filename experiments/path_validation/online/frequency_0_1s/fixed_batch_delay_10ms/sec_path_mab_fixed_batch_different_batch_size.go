@@ -1,9 +1,10 @@
-package online
+package fixed_batch_delay_10ms
 
 import (
 	"chain_simulation/entities"
 	"chain_simulation/entities/types"
-	"chain_simulation/experiments"
+	onlineconfig "chain_simulation/experiments/path_validation/online/config"
+	onlineexecutor "chain_simulation/experiments/path_validation/online/executor"
 	"chain_simulation/modules/topology_manager"
 	"chain_simulation/modules/validation_manager"
 	"chain_simulation/utils/dir"
@@ -15,24 +16,25 @@ import (
 
 var (
 	topologyType            = types.TopologyType_SecPathMab
+	resultScenarioPrefix    = "fixed_batch/frequency_0_1s/delay_10ms"
 	sourceNodeIndex         = 1
 	numberOfEpochs          = 500
 	numberOfPacketsPerLink  = 100
-	miniBatchSize           = 100
+	miniBatchSize           = 30
 	learningRate            = 0.2
-	minimumDeliveryRatio    = 0.8
+	minimumDeliveryRatio    = 0.9475
 	destinationPort         = 31313
 	destinations            = []string{"LirNode-10"}
 	messageSize             = 512
-	interval                = 0.00005 // 需要理解这个 interval 是 packet interval 还是 batch interval
+	interval                = 0.0001 // 需要理解这个 interval 是 packet interval 还是 batch interval
 	secPathMabType          = types.SecPathMabStrategy_FIXED_BATCH
 	enableDadeAlgorithm     = false
 	enableDedaAlgorithm     = false
 	minAckForRttEstimation  = 100
-	experimentTimeElapsedMs = 30 * 1000 // 单位为 ms
+	experimentTimeElapsedMs = 35 * 1000 // 单位为 ms
 )
 
-func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.ConfigurationSetting) ([]*entities.Event, error) {
+func GenerateSecPathMabFixedBatchDifferentBatchSizeEvents(currentExperimentIndex int, setting *entities.ConfigurationSetting) ([]*entities.Event, error) {
 	secPathMabBatchEvents := make([]*entities.Event, 0)
 
 	// 安装内核模块事件
@@ -118,11 +120,12 @@ func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.Conf
 
 	// 设置规划好的破坏率改变序列
 	currentTime += 10 * time.Second
+	maliciousSeed := onlineexecutor.MaliciousSeedFromSetting(setting)
 	changeCorruptRatioEvent := &entities.Event{
 		StartTime: currentTime,
 		Action:    types.ActionType_ChangeCorruptRatio,
 		Handler: func() error {
-			err = ChangeCorruptRatioInTimStampLevel()
+			err = ChangeCorruptRatioInTimStampLevel(maliciousSeed)
 			if err != nil {
 				fmt.Printf("change corrupt ratio in timestamp level failed due to: %v", err)
 			}
@@ -169,15 +172,21 @@ func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.Conf
 	secPathMabBatchEvents = append(secPathMabBatchEvents, startOsmdEvent)
 
 	// 5. 进行结果的拷贝
-	currentTime += time.Duration(experimentTimeElapsedMs/1000+10) * time.Second
+	currentTime += time.Duration(experimentTimeElapsedMs/1000+2) * time.Second
+
+	var experimentName string
+	if settingExperimentName, ok := setting.Mapping["experiment_name"]; ok {
+		experimentName = fmt.Sprintf("%s/%s", "/home/zhf/Projects/emulator/backend/result/", settingExperimentName)
+	} else {
+		experimentName = fmt.Sprintf("%s%d", "/home/zhf/Projects/emulator/backend/result/", currentExperimentIndex)
+	}
 
 	copyEvent := &entities.Event{
 		StartTime: currentTime,
 		Action:    types.ActionType_ResultHandling,
 		Handler: func() error {
 			go func() {
-				err = dir.CopyDir("/home/zhf/Projects/emulator/backend/simulation/LirNode-1/output",
-					fmt.Sprintf("%s%d", "/home/zhf/Projects/emulator/backend/result/", currentExperimentIndex))
+				err = dir.CopyDir("/home/zhf/Projects/emulator/backend/simulation/LirNode-1/output", experimentName)
 				if err != nil {
 					fmt.Printf("copy dir failed due to: %v\n", err)
 				}
@@ -234,210 +243,30 @@ func GenerateSecPathMabEvents(currentExperimentIndex int, setting *entities.Conf
 	return secPathMabBatchEvents, nil
 }
 
-func ChangeCorruptRatioInEpochLevel() error {
-	var err error
-	startEpoch := 100
-	updateInterval := 100
-	maxUpdateCount := 3
-	currentUpdateCount := 0
-	currentEpoch := startEpoch
-	for {
-		if currentUpdateCount%2 == 0 {
-			err = validation_manager.SetScheduledMaliciousParams(5, currentEpoch,
-				250000, 250000,
-				0, 0)
-			if err != nil {
-				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
-			}
-			err = validation_manager.SetScheduledMaliciousParams(6, currentEpoch,
-				50000, 50000,
-				0, 0)
-			if err != nil {
-				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
-			}
-		} else {
-			err = validation_manager.SetScheduledMaliciousParams(5, currentEpoch,
-				50000, 50000,
-				0, 0)
-			if err != nil {
-				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
-			}
-			err = validation_manager.SetScheduledMaliciousParams(6, currentEpoch,
-				250000, 250000,
-				0, 0)
-			if err != nil {
-				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
-			}
-		}
-
-		currentUpdateCount += 1
-		currentEpoch += updateInterval
-		if currentUpdateCount >= maxUpdateCount {
-			break
-		}
+func ChangeCorruptRatioInTimStampLevel(seed int64) error {
+	const (
+		startTimestamp = 5000
+		updateInterval = 100
+		maxUpdateCount = 300
+		largeRatio     = 100000
+		lowRatio       = 5000
+	)
+	switch onlineexecutor.GetCorruptRatioScheduleMode() {
+	case onlineexecutor.CorruptRatioScheduleSequential:
+		return onlineexecutor.ScheduleCyclicMaliciousParams(
+			startTimestamp, updateInterval, maxUpdateCount, largeRatio, lowRatio, onlineexecutor.DefaultCyclicMaliciousNodes)
+	default:
+		return onlineexecutor.ScheduleRandomMaliciousParams(
+			startTimestamp, updateInterval, maxUpdateCount, largeRatio, lowRatio,
+			seed, onlineexecutor.DefaultRandomMaliciousCandidateNodes)
 	}
-	return nil
 }
 
-func ChangeCorruptRatioInTimStampLevel() error {
-	startTimestamp := 10000
-	updateInterval := 600
-	maxUpdateCount := 20
-	currentUpdateCount := 0
-	currentTimestamp := startTimestamp
-	for {
-		if currentUpdateCount%2 == 0 {
-			err := validation_manager.SetScheduledMaliciousParams(5, currentTimestamp,
-				300000, 300000,
-				0, 0)
-			if err != nil {
-				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
-			}
-			err = validation_manager.SetScheduledMaliciousParams(6, currentTimestamp,
-				25000, 25000,
-				0, 0)
-			if err != nil {
-				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
-			}
-			// 295 (25000) 17:20:04 207468 (300000) 17:20:09 407697 (25000) 17:20:15
-		} else {
-			err := validation_manager.SetScheduledMaliciousParams(5, currentTimestamp,
-				25000, 25000,
-				0, 0)
-			if err != nil {
-				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
-			}
-			err = validation_manager.SetScheduledMaliciousParams(6, currentTimestamp,
-				300000, 300000,
-				0, 0)
-			if err != nil {
-				return fmt.Errorf("change corrupt ratio failed due to: %v", err)
-			}
-		}
-
-		currentUpdateCount += 1
-		currentTimestamp += updateInterval
-		if currentUpdateCount >= maxUpdateCount {
-			break
-		}
-	}
-	return nil
-}
-
-// SecPathMabExperiment 进行多次的实验
-func SecPathMabExperiment() error {
-	configurationSettings := []*entities.ConfigurationSetting{
-		//{
-		//	Index: 1,
-		//	Mapping: map[string]string{
-		//		"per_link_delay": "1",
-		//	},
-		//},
-		// ------------------------------------------
-		{
-			Mapping: map[string]string{
-				"per_link_delay":             "20",
-				"min_ack_for_rtt_estimation": "100",
-			},
-		},
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay":             "2.5",
-		//		"number_of_packets_per_link": "150",
-		//	},
-		//},
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay":             "2.5",
-		//		"number_of_packets_per_link": "200",
-		//	},
-		//},
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay":             "2.5",
-		//		"number_of_packets_per_link": "250",
-		//	},
-		//},
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay":             "2.5",
-		//		"number_of_packets_per_link": "300",
-		//	},
-		//},
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay":             "2.5",
-		//		"number_of_packets_per_link": "400",
-		//	},
-		//},
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay":             "2.5",
-		//		"number_of_packets_per_link": "500",
-		//	},
-		//},
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay":             "2.5",
-		//		"number_of_packets_per_link": "600",
-		//	},
-		//},
-		// ------------------------------------------
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay":             "2.5",
-		//		"min_ack_for_rtt_estimation": "100",
-		//	},
-		//},
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay":             "2.5",
-		//		"min_ack_for_rtt_estimation": "150",
-		//	},
-		//},
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay":             "2.5",
-		//		"min_ack_for_rtt_estimation": "200",
-		//	},
-		//},
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay":             "2.5",
-		//		"min_ack_for_rtt_estimation": "250",
-		//	},
-		//},
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay":             "2.5",
-		//		"min_ack_for_rtt_estimation": "300",
-		//	},
-		//},
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay": "10",
-		//	},
-		//},
-		//{
-		//	Mapping: map[string]string{
-		//		"per_link_delay": "20",
-		//	},
-		//},
-	}
-	for index, configurationSetting := range configurationSettings {
-		experimentIndex := index + 1
-		fmt.Printf("sec path mab experiment\n")
-		secPathMabEvents, err := GenerateSecPathMabEvents(experimentIndex, configurationSetting)
-		fmt.Printf("number of events: %d\n", len(secPathMabEvents))
-		if err != nil {
-			fmt.Printf("error to generate sec path mab batch events: %v\n", err)
-		}
-
-		err = experiments.SingleSimulation(configurationSetting, secPathMabEvents)
-		if err != nil {
-			return fmt.Errorf("sec path mab batch experiment failed: %w", err)
-		}
-	}
-
-	return nil
+// SecPathMabFixedBatchDifferentBatchSizeExperiment 进行多次的实验
+func SecPathMabFixedBatchDifferentBatchSizeExperiment() error {
+	return onlineexecutor.RunDifferentBatchSizeExperiments(
+		resultScenarioPrefix,
+		onlineconfig.DifferentBatchSizeConfigurationSettings(resultScenarioPrefix, "10"),
+		GenerateSecPathMabFixedBatchDifferentBatchSizeEvents,
+	)
 }

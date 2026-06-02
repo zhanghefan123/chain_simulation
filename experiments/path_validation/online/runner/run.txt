@@ -1,0 +1,6 @@
+sudo ./cmd run-online fixed-batch
+sudo ./cmd run-online fixed-batch --runs=3
+sudo ./cmd run-online fixed-batch --corrupt-ratio-mode=sequential
+sudo ./cmd run-online dynamic-batch
+sudo ./cmd run-online dynamic-batch --runs=3
+sudo ./cmd run-online dynamic-batch --corrupt-ratio-mode=sequential

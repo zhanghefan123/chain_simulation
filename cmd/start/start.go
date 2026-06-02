@@ -2,7 +2,7 @@ package start
 
 import (
 	"chain_simulation/configs"
-	"chain_simulation/experiments/path_validation/online"
+	"chain_simulation/experiments/path_validation/online/frequency_0_1s/fixed_batch_delay_5ms"
 	"chain_simulation/modules/sec_path_mab_topology_generator"
 	"fmt"
 	"path"
@@ -111,11 +111,32 @@ func CreateStartCmd() *cobra.Command {
 			//if err != nil {
 			//	fmt.Printf("multicast lip experiment failed: %v", err)
 			//}
-			fmt.Printf("Sec Path Mab experiment")
-			err = online.SecPathMabExperiment()
-			if err != nil {
-				fmt.Printf("sec path mab experiment failed: %v", err)
-			}
+			//fmt.Printf("Sec Path Mab Different Batch Size experiment")
+			//err = dynamic_batch_delay_1ms_frequency_5s.SecPathMabFixedBatchDifferentBatchSizeExperiment()
+			//if err != nil {
+			//	fmt.Printf("sec path mab experiment failed: %v", err)
+			//}
+			//err = fixed_batch_delay_1ms.SecPathMabFixedBatchDifferentBatchSizeExperiment()
+			//if err != nil {
+			//	fmt.Printf("sec path mab experiment failed: %v", err)
+			//}
+			//err = fixed_batch_delay_2_5ms_frequency_5s.SecPathMabFixedBatchDifferentBatchSizeExperiment()
+			//if err != nil {
+			//	fmt.Printf("sec path mab experiment failed: %v", err)
+			//}
+			//err = dynamic_batch_delay_1ms.SecPathMabDynamicBatchDifferentBatchSizeExperiment()
+			//if err != nil {
+			//	fmt.Printf("sec path mab experiment failed: %v", err)
+			//}
+			//err = dynamic_batch_delay_1ms.SecPathMabDynamicBatchDifferentBatchSizeExperiment()
+			//if err != nil {
+			//	fmt.Printf("sec path mab experiment failed: %v", err)
+			//}
+			//err = dynamic_batch_delay_5ms.SecPathMabDynamicBatchDifferentBatchSizeExperiment()
+			//err = different_delay_smaller_gap_fixed_batch.SecPathMabFixedBatchDifferentBatchSizeExperiment()
+			err = fixed_batch_delay_5ms.SecPathMabFixedBatchDifferentBatchSizeExperiment()
+			//  (0.5% + 10 %) / 2 = 5.25%
+			// 100% - 5.25% = 94.75%
 		},
 	}
 	return createStartCmd
