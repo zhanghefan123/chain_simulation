@@ -4,7 +4,6 @@ import "chain_simulation/entities/types"
 
 type InitOsmd struct {
 	// simulator params
-	NumberOfEpochs       int     `json:"number_of_epochs"`
 	LearningRate         float64 `json:"learning_rate"`
 	MinimumDeliveryRatio float64 `json:"minimum_delivery_ratio"`
 
@@ -22,15 +21,14 @@ type InitOsmd struct {
 	ExperimentTimeElapsedMs int      `json:"experiment_time_elapsed_ms"`
 }
 
-func NewInitOsmd(numberOfEpochs int,
-	learningRate float64, minimumDeliveryRatio float64,
+func NewInitOsmd(learningRate float64, minimumDeliveryRatio float64,
 	destinationPort int, destinations []string,
 	messageSize int, numberOfPktsPerLink int,
 	miniBatchSize int,
 	packetSendingInterval float64, strategy types.SecPathMabStrategy,
-	enableDadeAlgorithm bool, enableDedaAlgorithm bool, minAckForRttEstimation int, experimentTimeElapsedMs int) *InitOsmd {
+	enableDadeAlgorithm bool, enableDedaAlgorithm bool,
+	minAckForRttEstimation int, experimentTimeElapsedMs int) *InitOsmd {
 	return &InitOsmd{
-		NumberOfEpochs:       numberOfEpochs,
 		LearningRate:         learningRate,
 		MinimumDeliveryRatio: minimumDeliveryRatio,
 

@@ -42,7 +42,7 @@ func GenerateIcingOptBatchEvents() ([]*entities.Event, error) {
 	}
 	icingOptBatchEvents = append(icingOptBatchEvents, clearKernelLogEvent)
 
-	calculateMapping, err := breakpoint_awareness.GetAlreadyCaclulatedFileTransmissionResult("/home/zhf/Projects/emulator/backend/cmd/final_result")
+	alreadyRunedExperiments, err := breakpoint_awareness.GetAlreadyCaclulatedFileTransmissionResult("/home/zhf/Projects/emulator/backend/cmd/final_result")
 	if err != nil {
 		return nil, fmt.Errorf("get break point failed due to: %v", err)
 	}
@@ -59,7 +59,7 @@ func GenerateIcingOptBatchEvents() ([]*entities.Event, error) {
 			// 获取在这个参数下的文件名称
 			filePath := fmt.Sprintf("%s_batch_result_node_name_%s.txt", pathValidationProtocol, serverName)
 			// 判断是否已经计算过了
-			if _, ok := calculateMapping[filePath]; ok {
+			if _, ok := alreadyRunedExperiments[filePath]; ok {
 				fmt.Println("already calculated")
 				continue
 			}
@@ -72,8 +72,7 @@ func GenerateIcingOptBatchEvents() ([]*entities.Event, error) {
 				Handler: func() error {
 					go func() {
 						fmt.Printf("current start server %s\n", filePath)
-						err = validation_manager.StartServer(serverIndex, 1, pathValidationProtocol, 0, 31313,
-							"text", networkInterface, "IPv4", 1)
+						err = validation_manager.StartServer(serverIndex, 1, pathValidationProtocol, 0, 31313, "text", networkInterface, "Ipv4", 1, "")
 						if err != nil {
 							fmt.Printf("start server error: %v", err)
 						}

@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	TopologyManagerInstance                    = &TopologyManager{}
-	TopologyInstance        *entities.Topology = nil
+	TopologyManagerInstance                                   = &TopologyManager{}
+	TopologyStartParamsInstance *entities.TopologyStartParams = nil
 )
 
 type TopologyManager struct {
@@ -38,12 +38,12 @@ func (tm *TopologyManager) Start(topologyType types.TopologyType, dynamicParamet
 		configs.TopConfigInstance.NetworkConfig.BackendPort,
 		configs.TopConfigInstance.UrlConfig.StartTopologyUrl)
 	var err error
-	TopologyInstance, err = entities.NewTopology(topologyType, dynamicParameters)
+	TopologyStartParamsInstance, err = entities.NewTopologyStartParams(topologyType, dynamicParameters)
 	if err != nil {
 		return fmt.Errorf("create topology failed: %v\n", err)
 	}
-	fmt.Println(TopologyInstance)
-	err = request.PostJson(startTopologyUrl, TopologyInstance)
+	fmt.Println(TopologyStartParamsInstance)
+	err = request.PostJson(startTopologyUrl, TopologyStartParamsInstance)
 	if err != nil {
 		return fmt.Errorf("post topology failed: %v\n", err)
 	}

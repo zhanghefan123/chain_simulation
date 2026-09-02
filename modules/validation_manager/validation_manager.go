@@ -35,8 +35,8 @@ func StartClient(nodeIndex int, processes int, selectedNetworkLayer string, dest
 	}
 }
 
-func StartServer(nodeIndex int, processes int, selectedNetworkLayer string, simulationIndex int, listenPort int, serverType string, networkInterface string, ipVersion string, numberOfDestinations int) error {
-	err := ValidationManagerInstance.StartServerInner(nodeIndex, processes, selectedNetworkLayer, simulationIndex, listenPort, serverType, networkInterface, ipVersion, numberOfDestinations)
+func StartServer(nodeIndex int, processes int, selectedNetworkLayer string, simulationIndex int, listenPort int, serverType string, networkInterface string, ipVersion string, numberOfDestinations int, experimentName string) error {
+	err := ValidationManagerInstance.StartServerInner(nodeIndex, processes, selectedNetworkLayer, simulationIndex, listenPort, serverType, networkInterface, ipVersion, numberOfDestinations, experimentName)
 	if err != nil {
 		return fmt.Errorf("start server inner failed: %v", err)
 	} else {
@@ -44,12 +44,12 @@ func StartServer(nodeIndex int, processes int, selectedNetworkLayer string, simu
 	}
 }
 
-func InitOsmd(nodeIndex int, numberOfEpochs int,
+func InitOsmd(nodeIndex int,
 	learningRate float64, minimumDeliveryRatio float64,
 	destinationPort int, destinations []string,
 	messageSize int, numberOfPktsPerLink int, miniBatchSize int, packetSendingInterval float64, secPathMabStrategy types.SecPathMabStrategy,
 	enableDadeAlgorithm bool, enableDedaAlgorithm bool, minAckForRttEstimation int, experimentTimeElapsedMs int) error {
-	err := ValidationManagerInstance.InitOsmdInner(nodeIndex, numberOfEpochs, learningRate, minimumDeliveryRatio,
+	err := ValidationManagerInstance.InitOsmdInner(nodeIndex, learningRate, minimumDeliveryRatio,
 		destinationPort, destinations, messageSize, numberOfPktsPerLink, miniBatchSize, packetSendingInterval, secPathMabStrategy,
 		enableDadeAlgorithm, enableDedaAlgorithm, minAckForRttEstimation, experimentTimeElapsedMs)
 	if err != nil {
@@ -137,7 +137,8 @@ func (vm *ValidationManager) StartClientInner(nodeIndex int, processes int, sele
 	return nil
 }
 
-func (vm *ValidationManager) StartServerInner(nodeIndex int, processes int, selectedNetworkLayer string, simulationIndex int, listenPort int, serverType string, networkInterface string, ipVersion string, numberOfDestinations int) error {
+func (vm *ValidationManager) StartServerInner(nodeIndex int, processes int, selectedNetworkLayer string, simulationIndex int, listenPort int,
+	serverType string, networkInterface string, ipVersion string, numberOfDestinations int, experimentName string) error {
 	// 进行监听端口的获取
 	containerListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
 	// 进行 url 的构造
@@ -146,7 +147,7 @@ func (vm *ValidationManager) StartServerInner(nodeIndex int, processes int, sele
 		containerListenPort,
 		StartServerUrl)
 	// 构造数据
-	startServerInstance := entities.NewStartServer(processes, selectedNetworkLayer, listenPort, simulationIndex, serverType, networkInterface, ipVersion, numberOfDestinations)
+	startServerInstance := entities.NewStartServer(processes, selectedNetworkLayer, listenPort, simulationIndex, serverType, networkInterface, ipVersion, numberOfDestinations, experimentName)
 	// 进行 request
 	err := request.PostJson(startServerUrl, startServerInstance)
 	if err != nil {
@@ -155,11 +156,12 @@ func (vm *ValidationManager) StartServerInner(nodeIndex int, processes int, sele
 	return nil
 }
 
-func (vm *ValidationManager) InitOsmdInner(nodeIndex int, numberOfEpochs int,
+func (vm *ValidationManager) InitOsmdInner(nodeIndex int,
 	learningRate float64, minimumDeliveryRatio float64,
 	destinationPort int, destinations []string,
 	messageSize int, numberOfPktsPerLink int, miniBatchSize int, packetSendingInterval float64,
-	strategy types.SecPathMabStrategy, enableDadeAlgorithm bool, enableDedaAlgorithm bool, minAckForRttEstimation int, experimentTimeElapsedMs int) error {
+	strategy types.SecPathMabStrategy, enableDadeAlgorithm bool, enableDedaAlgorithm bool,
+	minAckForRttEstimation int, experimentTimeElapsedMs int) error {
 	// 进行监听端口的获取
 	containerListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
 	// 进行 url 的构造
@@ -168,10 +170,11 @@ func (vm *ValidationManager) InitOsmdInner(nodeIndex int, numberOfEpochs int,
 		containerListenPort,
 		InitOsmdUrl)
 	// 构造数据
-	initOsmdInstance := entities.NewInitOsmd(numberOfEpochs, learningRate, minimumDeliveryRatio,
+	initOsmdInstance := entities.NewInitOsmd(learningRate, minimumDeliveryRatio,
 		destinationPort, destinations, messageSize,
 		numberOfPktsPerLink, miniBatchSize,
-		packetSendingInterval, strategy, enableDadeAlgorithm, enableDedaAlgorithm, minAckForRttEstimation, experimentTimeElapsedMs)
+		packetSendingInterval, strategy, enableDadeAlgorithm, enableDedaAlgorithm,
+		minAckForRttEstimation, experimentTimeElapsedMs)
 	// 进行 request
 	err := request.PostJson(initOsmdUrl, initOsmdInstance)
 	if err != nil {

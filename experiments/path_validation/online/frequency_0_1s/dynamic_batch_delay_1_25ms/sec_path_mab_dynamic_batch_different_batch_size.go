@@ -24,7 +24,7 @@ var (
 	learningRate            = 0.2
 	minimumDeliveryRatio    = 0.9475
 	destinationPort         = 31313
-	destinations            = []string{"LirNode-10"}
+	destinations            = []string{"LirNode-16"} // 注意这里的 LirNode-10 在 topo (3,4) 之中肯定不是目的节点, 但是目的节点是靠着路径来发送的, 而不是看 destination, 所以无关紧要
 	messageSize             = 512
 	interval                = 0.0001 // 需要理解这个 interval 是 packet interval 还是 batch interval
 	secPathMabType          = types.SecPathMabStrategy_DYNAMIC_BATCH
@@ -106,7 +106,7 @@ func GenerateSecPathMabFixedBatchDifferentBatchSizeEvents(currentExperimentIndex
 			go func() {
 				fmt.Printf("current start osmd\n")
 
-				err = validation_manager.InitOsmd(sourceNodeIndex, numberOfEpochs, learningRate, minimumDeliveryRatio, destinationPort, destinations,
+				err = validation_manager.InitOsmd(sourceNodeIndex, learningRate, minimumDeliveryRatio, destinationPort, destinations,
 					messageSize, numberOfPacketsPerLink, miniBatchSize, interval, secPathMabType, enableDadeAlgorithm,
 					enableDedaAlgorithm, minAckForRttEstimation, experimentTimeElapsedMs)
 				if err != nil {
@@ -140,7 +140,7 @@ func GenerateSecPathMabFixedBatchDifferentBatchSizeEvents(currentExperimentIndex
 		StartTime: currentTime,
 		Action:    types.ActionType_SynchronizeTimestamp,
 		Handler: func() error {
-			for i := range len(topology_manager.TopologyInstance.Nodes) {
+			for i := range len(topology_manager.TopologyStartParamsInstance.TopologyParams.Nodes) {
 				nodeIndex := i + 1
 				go func() {
 					err = validation_manager.StartSync(nodeIndex)
@@ -244,22 +244,7 @@ func GenerateSecPathMabFixedBatchDifferentBatchSizeEvents(currentExperimentIndex
 }
 
 func ChangeCorruptRatioInTimStampLevel(seed int64) error {
-	const (
-		startTimestamp = 5000
-		updateInterval = 100
-		maxUpdateCount = 300
-		largeRatio     = 100000
-		lowRatio       = 5000
-	)
-	switch onlineexecutor.GetCorruptRatioScheduleMode() {
-	case onlineexecutor.CorruptRatioScheduleSequential:
-		return onlineexecutor.ScheduleCyclicMaliciousParams(
-			startTimestamp, updateInterval, maxUpdateCount, largeRatio, lowRatio, onlineexecutor.DefaultCyclicMaliciousNodes)
-	default:
-		return onlineexecutor.ScheduleRandomMaliciousParams(
-			startTimestamp, updateInterval, maxUpdateCount, largeRatio, lowRatio,
-			seed, onlineexecutor.DefaultRandomMaliciousCandidateNodes)
-	}
+	return onlineexecutor.ScheduleCorruptRatioChanges(seed, onlineexecutor.Corruptratioscheduleparamsfrequency01s)
 }
 
 // SecPathMabDynamicBatchDifferentBatchSizeExperiment 进行多次的实验

@@ -53,8 +53,7 @@ func GenerateIcingEvents() ([]*entities.Event, error) {
 						Handler: func() error {
 							go func() {
 								fmt.Printf("current start server %s\n", filePath)
-								err = validation_manager.StartServer(serverIndex, currentProcess, pathValidationProtocol, simulationIndex, 31313, "multiprocess_file", networkInterface,
-									"IPv4", 1)
+								err = validation_manager.StartServer(serverIndex, currentProcess, pathValidationProtocol, simulationIndex, 31313, "multiprocess_file", networkInterface, "Ipv4", 1, "")
 								if err != nil {
 									fmt.Printf("start server error: %v", err)
 								}

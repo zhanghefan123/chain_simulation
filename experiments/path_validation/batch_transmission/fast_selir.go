@@ -94,8 +94,8 @@ func GenerateFastSelirBatchEvents() ([]*entities.Event, error) {
 				Handler: func() error {
 					go func() {
 						fmt.Printf("current start server %s\n", filePath)
-						err = validation_manager.StartServer(serverIndex, 1, pathValidationProtocol, 0, 31313,
-							"text", networkInterface, "IPv4", 1)
+						err = validation_manager.StartServer(serverIndex, 1, pathValidationProtocol, 0,
+							31313, "text", networkInterface, "Ipv4", 1, "")
 						if err != nil {
 							fmt.Printf("start server error: %v", err)
 						}

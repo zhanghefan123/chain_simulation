@@ -7,6 +7,7 @@ type CorruptRatioScheduleMode int
 const (
 	CorruptRatioScheduleRandom CorruptRatioScheduleMode = iota
 	CorruptRatioScheduleSequential
+	CorruptRatioNone
 )
 
 var corruptRatioScheduleMode = CorruptRatioScheduleRandom
@@ -25,8 +26,10 @@ func SetCorruptRatioScheduleModeFromString(mode string) error {
 		SetCorruptRatioScheduleMode(CorruptRatioScheduleRandom)
 	case "sequential", "cyclic":
 		SetCorruptRatioScheduleMode(CorruptRatioScheduleSequential)
+	case "none":
+		SetCorruptRatioScheduleMode(CorruptRatioNone)
 	default:
-		return fmt.Errorf("unknown corrupt-ratio-mode %q, want random or sequential", mode)
+		return fmt.Errorf("unknown corrupt-ratio-mode %q, want random, sequential, or none", mode)
 	}
 	return nil
 }

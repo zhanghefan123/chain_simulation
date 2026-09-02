@@ -11,7 +11,7 @@ type BuildTopologyDescription struct {
 	Links []entities.Link `json:"links"`
 }
 
-func GenerateBuildTopologyDescription(osmdTopologyDescription *OsmdTopologyDescription) *BuildTopologyDescription {
+func GenerateBuildTopologyDescription(osmdTopologyDescription *NonLinearTopologyDescription) *BuildTopologyDescription {
 	finalResult := &BuildTopologyDescription{}
 	indexToBuildNodeMapping := finalResult.FillNodes(osmdTopologyDescription)
 	finalResult.FillLinks(osmdTopologyDescription, indexToBuildNodeMapping)
@@ -29,7 +29,7 @@ func (buildTopologyDescription *BuildTopologyDescription) MarshalBuildTopologyDe
 	}
 }
 
-func (buildTopologyDescription *BuildTopologyDescription) FillNodes(osmdTopologyDescription *OsmdTopologyDescription) map[int]entities.Node {
+func (buildTopologyDescription *BuildTopologyDescription) FillNodes(osmdTopologyDescription *NonLinearTopologyDescription) map[int]entities.Node {
 	indexToBuildNodeMapping := make(map[int]entities.Node)
 	buildTopologyDescription.Nodes = make([]entities.Node, len(osmdTopologyDescription.Nodes))
 	index := 0
@@ -62,7 +62,7 @@ func (buildTopologyDescription *BuildTopologyDescription) FillNodes(osmdTopology
 	return indexToBuildNodeMapping
 }
 
-func (buildTopologyDescription *BuildTopologyDescription) FillLinks(osmdTopologyDescription *OsmdTopologyDescription, indexToBuildNodeMapping map[int]entities.Node) {
+func (buildTopologyDescription *BuildTopologyDescription) FillLinks(osmdTopologyDescription *NonLinearTopologyDescription, indexToBuildNodeMapping map[int]entities.Node) {
 	buildTopologyDescription.Links = make([]entities.Link, len(osmdTopologyDescription.Links))
 	for realLinkIndex := range osmdTopologyDescription.Links {
 		realLink := osmdTopologyDescription.Links[realLinkIndex]

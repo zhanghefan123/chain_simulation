@@ -32,22 +32,25 @@ type batchSizeSetting struct {
 }
 
 var differentBatchSizeSettings = []batchSizeSetting{
-	{batchSizeValue: "30", experimentSuffix: "batch_size_90"},
-	{batchSizeValue: "100", experimentSuffix: "batch_size_300"},
-	{batchSizeValue: "200", experimentSuffix: "batch_size_600"},
-	{batchSizeValue: "400", experimentSuffix: "batch_size_1200"},
+	//{batchSizeValue: "10", experimentSuffix: "batch_size_60"},
+	//{batchSizeValue: "15", experimentSuffix: "batch_size_90"},
+	//{batchSizeValue: "30", experimentSuffix: "batch_size_180"},
+	{batchSizeValue: "30", experimentSuffix: "batch_size_120"},
+	//{batchSizeValue: "200", experimentSuffix: "batch_size_1200"},
+	//{batchSizeValue: "400", experimentSuffix: "batch_size_1200"},
 }
 
 // DifferentBatchSizeConfigurationSettings builds fixed-batch settings with a unique result path prefix.
 func DifferentBatchSizeConfigurationSettings(scenarioPrefix, perLinkDelay string) []*entities.ConfigurationSetting {
 	settings := make([]*entities.ConfigurationSetting, len(differentBatchSizeSettings))
-	for index, batchSizeSetting := range differentBatchSizeSettings {
+
+	for index, batchSizeSettingTmp := range differentBatchSizeSettings {
 		settings[index] = &entities.ConfigurationSetting{
 			Mapping: map[string]string{
 				"per_link_delay":             perLinkDelay,
-				"number_of_packets_per_link": batchSizeSetting.batchSizeValue,
+				"number_of_packets_per_link": batchSizeSettingTmp.batchSizeValue,
 				"experiment_name": fmt.Sprintf("%s/%s",
-					scenarioPrefix, batchSizeSetting.experimentSuffix),
+					scenarioPrefix, batchSizeSettingTmp.experimentSuffix),
 			},
 		}
 	}

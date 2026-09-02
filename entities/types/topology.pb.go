@@ -109,7 +109,7 @@ func file_topology_proto_rawDescGZIP() []byte {
 
 var file_topology_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_topology_proto_goTypes = []any{
-	(TopologyType)(0), // 0: TopologyType
+	(TopologyType)(0), // 0: ExperimentType
 }
 var file_topology_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type

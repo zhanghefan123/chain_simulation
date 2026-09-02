@@ -1,0 +1,205 @@
+{
+ "nodes": [
+  {
+   "index": 1,
+   "type": "LirNode",
+   "x": 10,
+   "y": 10,
+   "special_params": {
+    "inner_router_type": 2,
+    "malicious_params": {
+     "corrupt_ratio": {
+      "start": 0,
+      "end": 0
+     },
+     "corrupt_special_ratio": {
+      "start": 0,
+      "end": 0
+     }
+    }
+   }
+  },
+  {
+   "index": 2,
+   "type": "LirNode",
+   "x": 20,
+   "y": 20,
+   "special_params": {
+    "inner_router_type": 2,
+    "malicious_params": {
+     "corrupt_ratio": {
+      "start": 0,
+      "end": 0
+     },
+     "corrupt_special_ratio": {
+      "start": 0,
+      "end": 0
+     }
+    }
+   }
+  },
+  {
+   "index": 3,
+   "type": "LirNode",
+   "x": 30,
+   "y": 30,
+   "special_params": {
+    "inner_router_type": 2,
+    "malicious_params": {
+     "corrupt_ratio": {
+      "start": 0,
+      "end": 0
+     },
+     "corrupt_special_ratio": {
+      "start": 0,
+      "end": 0
+     }
+    }
+   }
+  },
+  {
+   "index": 4,
+   "type": "LirNode",
+   "x": 40,
+   "y": 40,
+   "special_params": {
+    "inner_router_type": 2,
+    "malicious_params": {
+     "corrupt_ratio": {
+      "start": 0,
+      "end": 0
+     },
+     "corrupt_special_ratio": {
+      "start": 0,
+      "end": 0
+     }
+    }
+   }
+  }
+ ],
+ "links": [
+  {
+   "source_node": {
+    "index": 1,
+    "type": "LirNode",
+    "x": 10,
+    "y": 10,
+    "special_params": {
+     "inner_router_type": 2,
+     "malicious_params": {
+      "corrupt_ratio": {
+       "start": 0,
+       "end": 0
+      },
+      "corrupt_special_ratio": {
+       "start": 0,
+       "end": 0
+      }
+     }
+    }
+   },
+   "target_node": {
+    "index": 2,
+    "type": "LirNode",
+    "x": 20,
+    "y": 20,
+    "special_params": {
+     "inner_router_type": 2,
+     "malicious_params": {
+      "corrupt_ratio": {
+       "start": 0,
+       "end": 0
+      },
+      "corrupt_special_ratio": {
+       "start": 0,
+       "end": 0
+      }
+     }
+    }
+   },
+   "link_type": "backbone"
+  },
+  {
+   "source_node": {
+    "index": 2,
+    "type": "LirNode",
+    "x": 20,
+    "y": 20,
+    "special_params": {
+     "inner_router_type": 2,
+     "malicious_params": {
+      "corrupt_ratio": {
+       "start": 0,
+       "end": 0
+      },
+      "corrupt_special_ratio": {
+       "start": 0,
+       "end": 0
+      }
+     }
+    }
+   },
+   "target_node": {
+    "index": 3,
+    "type": "LirNode",
+    "x": 30,
+    "y": 30,
+    "special_params": {
+     "inner_router_type": 2,
+     "malicious_params": {
+      "corrupt_ratio": {
+       "start": 0,
+       "end": 0
+      },
+      "corrupt_special_ratio": {
+       "start": 0,
+       "end": 0
+      }
+     }
+    }
+   },
+   "link_type": "backbone"
+  },
+  {
+   "source_node": {
+    "index": 3,
+    "type": "LirNode",
+    "x": 30,
+    "y": 30,
+    "special_params": {
+     "inner_router_type": 2,
+     "malicious_params": {
+      "corrupt_ratio": {
+       "start": 0,
+       "end": 0
+      },
+      "corrupt_special_ratio": {
+       "start": 0,
+       "end": 0
+      }
+     }
+    }
+   },
+   "target_node": {
+    "index": 4,
+    "type": "LirNode",
+    "x": 40,
+    "y": 40,
+    "special_params": {
+     "inner_router_type": 2,
+     "malicious_params": {
+      "corrupt_ratio": {
+       "start": 0,
+       "end": 0
+      },
+      "corrupt_special_ratio": {
+       "start": 0,
+       "end": 0
+      }
+     }
+    }
+   },
+   "link_type": "backbone"
+  }
+ ]
+}

@@ -5,10 +5,13 @@ import (
 	"fmt"
 )
 
-// DefaultCyclicMaliciousNodes 按 hop 顺序依次破坏: 2 -> 5 -> 8 -> 3 -> 6 -> 9
-var DefaultCyclicMaliciousNodes = []int{2, 5, 8, 3, 6, 9}
-
 func ScheduleCyclicMaliciousParams(startTimestamp, updateInterval, maxUpdateCount, largeRatio, lowRatio int, maliciousNodes []int) error {
+	// Ensure candidates reflect current topology settings when possible.
+	RefreshMaliciousCandidatesFromConfig()
+	if len(maliciousNodes) == 0 {
+		maliciousNodes = DefaultCyclicMaliciousNodes
+	}
+
 	currentTimestamp := startTimestamp + updateInterval
 	previousBadNodeIndex := -1
 	for currentUpdateCount := 0; currentUpdateCount < maxUpdateCount; currentUpdateCount++ {

@@ -26,6 +26,7 @@ type SecPathMabStrategy int32
 const (
 	SecPathMabStrategy_FIXED_BATCH   SecPathMabStrategy = 0
 	SecPathMabStrategy_DYNAMIC_BATCH SecPathMabStrategy = 1
+	SecPathMabStrategy_PATH_MAB      SecPathMabStrategy = 2
 )
 
 // Enum value maps for SecPathMabStrategy.
@@ -33,10 +34,12 @@ var (
 	SecPathMabStrategy_name = map[int32]string{
 		0: "FIXED_BATCH",
 		1: "DYNAMIC_BATCH",
+		2: "PATH_MAB",
 	}
 	SecPathMabStrategy_value = map[string]int32{
 		"FIXED_BATCH":   0,
 		"DYNAMIC_BATCH": 1,
+		"PATH_MAB":      2,
 	}
 )
 
@@ -67,14 +70,113 @@ func (SecPathMabStrategy) EnumDescriptor() ([]byte, []int) {
 	return file_sec_path_mab_proto_rawDescGZIP(), []int{0}
 }
 
+type SecPathMabTopologyType int32
+
+const (
+	SecPathMabTopologyType_NON_LINEAR_TEST_TOPOLOGY SecPathMabTopologyType = 0
+	SecPathMabTopologyType_LINEAR_TEST_TOPOLOGY     SecPathMabTopologyType = 1
+)
+
+// Enum value maps for SecPathMabTopologyType.
+var (
+	SecPathMabTopologyType_name = map[int32]string{
+		0: "NON_LINEAR_TEST_TOPOLOGY",
+		1: "LINEAR_TEST_TOPOLOGY",
+	}
+	SecPathMabTopologyType_value = map[string]int32{
+		"NON_LINEAR_TEST_TOPOLOGY": 0,
+		"LINEAR_TEST_TOPOLOGY":     1,
+	}
+)
+
+func (x SecPathMabTopologyType) Enum() *SecPathMabTopologyType {
+	p := new(SecPathMabTopologyType)
+	*p = x
+	return p
+}
+
+func (x SecPathMabTopologyType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SecPathMabTopologyType) Descriptor() protoreflect.EnumDescriptor {
+	return file_sec_path_mab_proto_enumTypes[1].Descriptor()
+}
+
+func (SecPathMabTopologyType) Type() protoreflect.EnumType {
+	return &file_sec_path_mab_proto_enumTypes[1]
+}
+
+func (x SecPathMabTopologyType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SecPathMabTopologyType.Descriptor instead.
+func (SecPathMabTopologyType) EnumDescriptor() ([]byte, []int) {
+	return file_sec_path_mab_proto_rawDescGZIP(), []int{1}
+}
+
+type SecPathMabExperimentType int32
+
+const (
+	SecPathMabExperimentType_REGRET_EXPERIMENT     SecPathMabExperimentType = 0
+	SecPathMabExperimentType_THROUGHPUT_EXPERIMENT SecPathMabExperimentType = 1
+)
+
+// Enum value maps for SecPathMabExperimentType.
+var (
+	SecPathMabExperimentType_name = map[int32]string{
+		0: "REGRET_EXPERIMENT",
+		1: "THROUGHPUT_EXPERIMENT",
+	}
+	SecPathMabExperimentType_value = map[string]int32{
+		"REGRET_EXPERIMENT":     0,
+		"THROUGHPUT_EXPERIMENT": 1,
+	}
+)
+
+func (x SecPathMabExperimentType) Enum() *SecPathMabExperimentType {
+	p := new(SecPathMabExperimentType)
+	*p = x
+	return p
+}
+
+func (x SecPathMabExperimentType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SecPathMabExperimentType) Descriptor() protoreflect.EnumDescriptor {
+	return file_sec_path_mab_proto_enumTypes[2].Descriptor()
+}
+
+func (SecPathMabExperimentType) Type() protoreflect.EnumType {
+	return &file_sec_path_mab_proto_enumTypes[2]
+}
+
+func (x SecPathMabExperimentType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SecPathMabExperimentType.Descriptor instead.
+func (SecPathMabExperimentType) EnumDescriptor() ([]byte, []int) {
+	return file_sec_path_mab_proto_rawDescGZIP(), []int{2}
+}
+
 var File_sec_path_mab_proto protoreflect.FileDescriptor
 
 const file_sec_path_mab_proto_rawDesc = "" +
 	"\n" +
-	"\x12sec_path_mab.proto*8\n" +
+	"\x12sec_path_mab.proto*F\n" +
 	"\x12SecPathMabStrategy\x12\x0f\n" +
 	"\vFIXED_BATCH\x10\x00\x12\x11\n" +
-	"\rDYNAMIC_BATCH\x10\x01B\n" +
+	"\rDYNAMIC_BATCH\x10\x01\x12\f\n" +
+	"\bPATH_MAB\x10\x02*P\n" +
+	"\x16SecPathMabTopologyType\x12\x1c\n" +
+	"\x18NON_LINEAR_TEST_TOPOLOGY\x10\x00\x12\x18\n" +
+	"\x14LINEAR_TEST_TOPOLOGY\x10\x01*L\n" +
+	"\x18SecPathMabExperimentType\x12\x15\n" +
+	"\x11REGRET_EXPERIMENT\x10\x00\x12\x19\n" +
+	"\x15THROUGHPUT_EXPERIMENT\x10\x01B\n" +
 	"Z\b../typesb\x06proto3"
 
 var (
@@ -89,9 +191,11 @@ func file_sec_path_mab_proto_rawDescGZIP() []byte {
 	return file_sec_path_mab_proto_rawDescData
 }
 
-var file_sec_path_mab_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_sec_path_mab_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_sec_path_mab_proto_goTypes = []any{
-	(SecPathMabStrategy)(0), // 0: SecPathMabStrategy
+	(SecPathMabStrategy)(0),       // 0: SecPathMabStrategy
+	(SecPathMabTopologyType)(0),   // 1: SecPathMabTopologyType
+	(SecPathMabExperimentType)(0), // 2: SecPathMabExperimentType
 }
 var file_sec_path_mab_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -111,7 +215,7 @@ func file_sec_path_mab_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_sec_path_mab_proto_rawDesc), len(file_sec_path_mab_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      3,
 			NumMessages:   0,
 			NumExtensions: 0,
 			NumServices:   0,

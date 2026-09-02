@@ -5,4 +5,15 @@ option go_package = "../types";
 enum SecPathMabStrategy {
   FIXED_BATCH = 0;
   DYNAMIC_BATCH = 1;
+  PATH_MAB = 2;
+}
+
+enum SecPathMabTopologyType {
+  NON_LINEAR_TEST_TOPOLOGY = 0;
+  LINEAR_TEST_TOPOLOGY = 1;
+}
+
+enum SecPathMabExperimentType {
+  REGRET_EXPERIMENT = 0;
+  THROUGHPUT_EXPERIMENT = 1;
 }

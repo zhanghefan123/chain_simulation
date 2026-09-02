@@ -92,8 +92,7 @@ func GenerateEpicBatchEvents() ([]*entities.Event, error) {
 				Action:    types.ActionType_StartServer,
 				Handler: func() error {
 					go func() {
-						err = validation_manager.StartServer(serverIndex, 1, pathValidationProtocol, 0, 31313, "text", networkInterface,
-							"IPv4", 1)
+						err = validation_manager.StartServer(serverIndex, 1, pathValidationProtocol, 0, 31313, "text", networkInterface, "Ipv4", 1, "")
 						if err != nil {
 							fmt.Printf("epic start server error: %v", err)
 						}

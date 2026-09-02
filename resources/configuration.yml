@@ -1,5 +1,5 @@
 network_config:
-  backend_addr: "10.134.86.153"
+  backend_addr: "10.134.86.108"
   backend_port: 8080
   validation_node_port: 9000
 
@@ -23,7 +23,15 @@ url_config:
 consensus_config:
   thread_count: 20
 
+# sec_path_mab 相关的操作 topo(3,4)  3*(4+1) + 1 = 16
+
+# Topo(4,2) | 2^4 = 16 | 4 * (2+1) + 1 = 13 | 20 MBps
+# Topo(4,3) | 3^4 = 81 | 4 * (3+1) + 1 = 17 | 21 MBps
+# Topo(4,4) | 4^4 = 256 | 4 * (4+1) + 1 = 21 |
 sec_path_mab_config:
-  number_of_hops: 3
+  topology_type: 0  # topology_type = 0 --> non-linear | topology_type = 1 --> linear
+  experiment_type: 0  # experiment_type = 0 --> regret | experiment_type = 1 --> throughput
+  number_of_hops: 5
+  number_of_intermediate_nodes: 4
   low_corrupt_ratio: 5000
   high_corrupt_ratio: 5000

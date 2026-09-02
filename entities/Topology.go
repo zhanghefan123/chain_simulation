@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"chain_simulation/configs"
 	"chain_simulation/entities/types"
 	"chain_simulation/utils/file"
 	"encoding/json"
@@ -16,20 +17,32 @@ var (
 	TopologySecPathMab              = "../resources/topologies/sec_path_mab_topology.json"
 )
 
-type Topology struct {
-	ConsensusThreadCount int `json:"consensus_thread_count"`
-	AccessLinkBandwidth  int `json:"access_link_bandwidth"`
-	ConsensusNodeCpu     int `json:"consensus_node_cpu"`
-	ConsensusNodeMemory  int `json:"consensus_node_memory"`
+type BlockChainParams struct {
+	ConsensusThreadCount int    `json:"consensus_thread_count"`
+	BlockchainType       string `json:"blockchain_type"`
+	ConsensusType        string `json:"consensus_type"`
+	StartDefence         bool   `json:"start_defence"`
+}
 
-	NetworkEnv     string `json:"network_env"`
-	BlockchainType string `json:"blockchain_type"`
-	ConsensusType  string `json:"consensus_type"`
-	Nodes          []Node `json:"nodes"`
-	Links          []Link `json:"links"`
+type SecPathMabParams struct {
+	TopologyType           int  `json:"topology_type"`
+	ExperimentType         int  `json:"experiment_type"`
+	SecPathMabEnabled      bool `json:"sec_path_mab_enabled"`
+	SecPathMabType         int  `json:"sec_path_mab_type"`
+	NumberOfHops           int  `json:"number_of_hops"`
+	NumberOfSegmentsPerHop int  `json:"number_of_segments_per_hop"`
+}
 
-	SecPathMabType int     `json:"sec_path_mab_type"`
-	PerLinkDelay   float64 `json:"per_link_delay"`
+type TopologyParams struct {
+	Nodes        []Node  `json:"nodes"`
+	Links        []Link  `json:"links"`
+	PerLinkDelay float64 `json:"per_link_delay"`
+}
+
+type TopologyStartParams struct {
+	BlockChainParams BlockChainParams `json:"block_chain_params"`
+	SecPathMabParams SecPathMabParams `json:"sec_path_mab_params"`
+	TopologyParams   TopologyParams   `json:"topology_params"`
 }
 
 type DynamicParameters struct {
@@ -38,15 +51,25 @@ type DynamicParameters struct {
 	PerLinkDelay         float64
 }
 
-func NewTopology(topologyType types.TopologyType, dynamicParameters *DynamicParameters) (*Topology, error) {
-	topology := &Topology{
-		ConsensusThreadCount: dynamicParameters.ConsensusThreadCount,
-		AccessLinkBandwidth:  8,
-		ConsensusNodeCpu:     2,
-		ConsensusNodeMemory:  1024,
-		SecPathMabType:       int(dynamicParameters.SecPathMabType),
-		PerLinkDelay:         dynamicParameters.PerLinkDelay,
-	}
+func NewTopologyStartParams(topologyType types.TopologyType, dynamicParameters *DynamicParameters) (*TopologyStartParams, error) {
+	topology := &TopologyStartParams{
+		BlockChainParams: BlockChainParams{
+			ConsensusThreadCount: dynamicParameters.ConsensusThreadCount,
+			BlockchainType:       "",
+			ConsensusType:        "",
+		},
+		SecPathMabParams: SecPathMabParams{
+			TopologyType:           configs.TopConfigInstance.SecPathMabConfig.TopologyType,
+			ExperimentType:         configs.TopConfigInstance.SecPathMabConfig.ExperimentType,
+			SecPathMabType:         int(dynamicParameters.SecPathMabType),
+			NumberOfHops:           configs.TopConfigInstance.SecPathMabConfig.NumberOfHops,
+			NumberOfSegmentsPerHop: configs.TopConfigInstance.SecPathMabConfig.NumberOfIntermediateNodes,
+		},
+		TopologyParams: TopologyParams{
+			Nodes:        make([]Node, 0),
+			Links:        make([]Link, 0),
+			PerLinkDelay: dynamicParameters.PerLinkDelay,
+		}}
 	err := loadInformation(topology, topologyType)
 	if err != nil {
 		return nil, fmt.Errorf("load information error: %v", err)
@@ -55,49 +78,46 @@ func NewTopology(topologyType types.TopologyType, dynamicParameters *DynamicPara
 	if err != nil {
 		return nil, fmt.Errorf("load nodes and links error: %v", err)
 	}
+	fmt.Println("fuck")
+	fmt.Println(topology)
+	fmt.Println("fuck")
 	return topology, nil
 }
 
-func loadInformation(topology *Topology, topologyType types.TopologyType) error {
+func loadInformation(topologyStartParams *TopologyStartParams, topologyType types.TopologyType) error {
 	switch topologyType {
 	case types.TopologyType_HyperledgerFabric:
-		topology.NetworkEnv = "fabric_test_topology"
-		topology.BlockchainType = "fabric"
-		topology.ConsensusType = "BFT-SMaRt"
+		topologyStartParams.BlockChainParams.BlockchainType = "fabric"
+		topologyStartParams.BlockChainParams.ConsensusType = "BFT-SMaRt"
 	case types.TopologyType_FiscoBcos:
-		topology.NetworkEnv = "fisco_bcos_test_topology"
-		topology.BlockchainType = "fisco-bcos"
-		topology.ConsensusType = "pbft"
+		topologyStartParams.BlockChainParams.BlockchainType = "fisco-bcos"
+		topologyStartParams.BlockChainParams.ConsensusType = "pbft"
 	case types.TopologyType_ChainMaker:
-		topology.NetworkEnv = "chainmaker_test_topology"
-		topology.BlockchainType = "长安链"
-		topology.ConsensusType = "TBFT"
+		topologyStartParams.BlockChainParams.BlockchainType = "长安链"
+		topologyStartParams.BlockChainParams.ConsensusType = "TBFT"
 	case types.TopologyType_SimplePathValidation:
-		topology.NetworkEnv = "simple_path_validation"
-		topology.BlockchainType = "无区块链"
-		topology.ConsensusType = "无共识协议"
+		topologyStartParams.BlockChainParams.BlockchainType = "无区块链"
+		topologyStartParams.BlockChainParams.ConsensusType = "无共识协议"
 	case types.TopologyType_MulticastPathValidation:
-		topology.NetworkEnv = "multicast_topology"
-		topology.BlockchainType = "无区块链"
-		topology.ConsensusType = "无共识协议"
+		topologyStartParams.BlockChainParams.BlockchainType = "无区块链"
+		topologyStartParams.BlockChainParams.ConsensusType = "无共识协议"
 	case types.TopologyType_SecPathMab:
-		topology.NetworkEnv = "sec_path_mab_topology"
-		topology.BlockchainType = "无区块链"
-		topology.ConsensusType = "无共识协议"
+		topologyStartParams.BlockChainParams.BlockchainType = "无区块链"
+		topologyStartParams.BlockChainParams.ConsensusType = "无共识协议"
 	default:
-		return fmt.Errorf("unsupported topology")
+		return fmt.Errorf("unsupported topologyStartParams")
 	}
 	return nil
 }
 
-func loadNodesAndLinks(topology *Topology, topologyType types.TopologyType) error {
+func loadNodesAndLinks(topologyStartParams *TopologyStartParams, topologyType types.TopologyType) error {
 	switch topologyType {
 	case types.TopologyType_HyperledgerFabric:
 		result, err := file.ReadFile(TopologyPathFabric)
 		if err != nil {
 			return fmt.Errorf("read file error")
 		}
-		err = json.Unmarshal([]byte(result), &topology)
+		err = json.Unmarshal([]byte(result), &topologyStartParams.TopologyParams)
 		if err != nil {
 			return fmt.Errorf("unmarshal error")
 		}
@@ -106,7 +126,7 @@ func loadNodesAndLinks(topology *Topology, topologyType types.TopologyType) erro
 		if err != nil {
 			return fmt.Errorf("read file error")
 		}
-		err = json.Unmarshal([]byte(result), &topology)
+		err = json.Unmarshal([]byte(result), &topologyStartParams.TopologyParams)
 		if err != nil {
 			return fmt.Errorf("unmarshal error")
 		}
@@ -115,7 +135,7 @@ func loadNodesAndLinks(topology *Topology, topologyType types.TopologyType) erro
 		if err != nil {
 			return fmt.Errorf("read file error")
 		}
-		err = json.Unmarshal([]byte(result), &topology)
+		err = json.Unmarshal([]byte(result), &topologyStartParams.TopologyParams)
 		if err != nil {
 			return fmt.Errorf("unmarshal error")
 		}
@@ -124,7 +144,7 @@ func loadNodesAndLinks(topology *Topology, topologyType types.TopologyType) erro
 		if err != nil {
 			return fmt.Errorf("read file error")
 		}
-		err = json.Unmarshal([]byte(result), &topology)
+		err = json.Unmarshal([]byte(result), &topologyStartParams.TopologyParams)
 		if err != nil {
 			return fmt.Errorf("unmarshal error")
 		}
@@ -133,7 +153,7 @@ func loadNodesAndLinks(topology *Topology, topologyType types.TopologyType) erro
 		if err != nil {
 			return fmt.Errorf("read file error")
 		}
-		err = json.Unmarshal([]byte(result), &topology)
+		err = json.Unmarshal([]byte(result), &topologyStartParams.TopologyParams)
 		if err != nil {
 			return fmt.Errorf("unmarshal error")
 		}
@@ -142,7 +162,7 @@ func loadNodesAndLinks(topology *Topology, topologyType types.TopologyType) erro
 		if err != nil {
 			return fmt.Errorf("read file error")
 		}
-		err = json.Unmarshal([]byte(result), &topology)
+		err = json.Unmarshal([]byte(result), &topologyStartParams.TopologyParams)
 		if err != nil {
 			return fmt.Errorf("unmarshal error")
 		}

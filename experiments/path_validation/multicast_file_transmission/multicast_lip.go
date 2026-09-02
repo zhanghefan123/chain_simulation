@@ -92,7 +92,7 @@ func GenerateMulticastLiPEvents() ([]*entities.Event, error) {
 									destinationIndex, _ := extract.NumberFromString(destination)
 									networkInterface := fmt.Sprintf("ln%d_idx1", destinationIndex)
 									err = validation_manager.StartServer(destinationIndex, currentProcess, pathValidationProtocol, 0, 31313,
-										"multiprocess_file", networkInterface, "IPv4", currentDestination)
+										"multiprocess_file", networkInterface, "Ipv4", currentDestination)
 									if err != nil {
 										fmt.Printf("start server error: %v", err)
 									}
