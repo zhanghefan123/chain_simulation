@@ -10,114 +10,19 @@ import (
 )
 
 var (
-	ValidationManagerInstance     = &ValidationManager{}
 	StartClientUrl                = "startClient"
 	StartServerUrl                = "startServer"
 	InitOsmdUrl                   = "initOsmd"
 	StartOsmdUrl                  = "startOsmd"
-	StartRetrieveAcksUrl          = "startRetrieveAcks"
 	SetSchduledMaliciousParamsUrl = "setSchduledMaliciousParams"
 	ModifyBloomFilterUrl          = "modifyBloomFilter"
 	StartSyncUrl                  = "startSync"
+	InsertSessionTableEntriesUrl  = "insertSessionTableEntries"
 )
 
 type ValidationManager struct{}
 
 func StartClient(nodeIndex int, processes int, selectedNetworkLayer string, destinationPort int, destinations []string, transmissionPattern string, fileSize int, bufferSize int, content string,
-	batchSize int, messageSize int, interval float64) error {
-	err := ValidationManagerInstance.StartClientInner(nodeIndex, processes, selectedNetworkLayer, destinationPort, destinations,
-		transmissionPattern, fileSize, bufferSize, content,
-		batchSize, messageSize, interval)
-	if err != nil {
-		return fmt.Errorf("start client inner failed: %v", err)
-	} else {
-		return nil
-	}
-}
-
-func StartServer(nodeIndex int, processes int, selectedNetworkLayer string, simulationIndex int, listenPort int, serverType string, networkInterface string, ipVersion string, numberOfDestinations int, experimentName string) error {
-	err := ValidationManagerInstance.StartServerInner(nodeIndex, processes, selectedNetworkLayer, simulationIndex, listenPort, serverType, networkInterface, ipVersion, numberOfDestinations, experimentName)
-	if err != nil {
-		return fmt.Errorf("start server inner failed: %v", err)
-	} else {
-		return nil
-	}
-}
-
-func InitOsmd(nodeIndex int,
-	learningRate float64, minimumDeliveryRatio float64,
-	destinationPort int, destinations []string,
-	messageSize int, numberOfPktsPerLink int, miniBatchSize int, packetSendingInterval float64, secPathMabStrategy types.SecPathMabStrategy,
-	enableDadeAlgorithm bool, enableDedaAlgorithm bool, minAckForRttEstimation int, experimentTimeElapsedMs int) error {
-	err := ValidationManagerInstance.InitOsmdInner(nodeIndex, learningRate, minimumDeliveryRatio,
-		destinationPort, destinations, messageSize, numberOfPktsPerLink, miniBatchSize, packetSendingInterval, secPathMabStrategy,
-		enableDadeAlgorithm, enableDedaAlgorithm, minAckForRttEstimation, experimentTimeElapsedMs)
-	if err != nil {
-		return fmt.Errorf("init osmd failed: %v", err)
-	} else {
-		return nil
-	}
-}
-
-func StartOsmd(nodeIndex int) error {
-	err := ValidationManagerInstance.StartOsmdInner(nodeIndex)
-	if err != nil {
-		return fmt.Errorf("start osmd failed: %v", err)
-	} else {
-		return nil
-	}
-}
-
-func SetScheduledMaliciousParams(nodeIndex, employedEpochOrTimestampMs, corruptRatioStart, corrutpRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd int) error {
-	err := ValidationManagerInstance.SetScheduledMaliciousParamsInner(nodeIndex, employedEpochOrTimestampMs, corruptRatioStart, corrutpRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd)
-	if err != nil {
-		return fmt.Errorf("set scheduled malicious params inner failed: %v", err)
-	}
-	err = ValidationManagerInstance.SetScheduledMaliciousParamsToSource(nodeIndex, employedEpochOrTimestampMs, corruptRatioStart, corrutpRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd)
-	if err != nil {
-		return fmt.Errorf("set scheduled malicious params source failed: %v", err)
-	}
-	return nil
-}
-
-func StartRetrieveAcks(nodeIndex int) error {
-	err := ValidationManagerInstance.StartRetrieveAcksInner(nodeIndex)
-	if err != nil {
-		return fmt.Errorf("start retrieve acks inner failed: %v", err)
-	} else {
-		return nil
-	}
-}
-
-func ModifyBloomFilter(nodeIndex int, bfEffectiveBits int) error {
-	err := ValidationManagerInstance.ModifyBloomFilter(nodeIndex, bfEffectiveBits)
-	if err != nil {
-		return fmt.Errorf("modify bloom filter failed: %v", err)
-	} else {
-		return nil
-	}
-}
-
-func (vm *ValidationManager) ModifyBloomFilter(nodeIndex int, bfEffectiveBits int) error {
-	// 进行节点监听端口的获取
-	listenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
-	// 进行 url 构造
-	modifyBloomFilterUrl := fmt.Sprintf("http://%s:%d/%s",
-		configs.TopConfigInstance.NetworkConfig.BackendAddr,
-		listenPort,
-		ModifyBloomFilterUrl)
-	// 构造数据
-	modifyBloomFilterInstance := entities.NewModifyBloomFilter(bfEffectiveBits)
-	// 进行 request
-	err := request.PostJson(modifyBloomFilterUrl, modifyBloomFilterInstance)
-	if err != nil {
-		return fmt.Errorf("post modify bloom filter failed: %v", err)
-	}
-	return nil
-}
-
-func (vm *ValidationManager) StartClientInner(nodeIndex int, processes int, selectedNetworkLayer string, destinationPort int, destinations []string,
-	transmissionPattern string, fileSize int, bufferSize int, content string,
 	batchSize int, messageSize int, interval float64) error {
 	// 进行节点的监听端口的获取
 	listenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
@@ -137,8 +42,7 @@ func (vm *ValidationManager) StartClientInner(nodeIndex int, processes int, sele
 	return nil
 }
 
-func (vm *ValidationManager) StartServerInner(nodeIndex int, processes int, selectedNetworkLayer string, simulationIndex int, listenPort int,
-	serverType string, networkInterface string, ipVersion string, numberOfDestinations int, experimentName string) error {
+func StartServer(nodeIndex int, processes int, selectedNetworkLayer string, simulationIndex int, listenPort int, serverType string, networkInterface string, ipVersion string, numberOfDestinations int, experimentName string) error {
 	// 进行监听端口的获取
 	containerListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
 	// 进行 url 的构造
@@ -156,12 +60,11 @@ func (vm *ValidationManager) StartServerInner(nodeIndex int, processes int, sele
 	return nil
 }
 
-func (vm *ValidationManager) InitOsmdInner(nodeIndex int,
+func InitOsmd(nodeIndex int,
 	learningRate float64, minimumDeliveryRatio float64,
 	destinationPort int, destinations []string,
-	messageSize int, numberOfPktsPerLink int, miniBatchSize int, packetSendingInterval float64,
-	strategy types.SecPathMabStrategy, enableDadeAlgorithm bool, enableDedaAlgorithm bool,
-	minAckForRttEstimation int, experimentTimeElapsedMs int) error {
+	messageSize int, numberOfPktsPerLink int, miniBatchSize int, packetSendingInterval float64, secPathMabStrategy types.SecPathMabStrategy,
+	enableDadeAlgorithm bool, enableDedaAlgorithm bool, minAckForRttEstimation int, experimentTimeElapsedMs int) error {
 	// 进行监听端口的获取
 	containerListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
 	// 进行 url 的构造
@@ -173,7 +76,7 @@ func (vm *ValidationManager) InitOsmdInner(nodeIndex int,
 	initOsmdInstance := entities.NewInitOsmd(learningRate, minimumDeliveryRatio,
 		destinationPort, destinations, messageSize,
 		numberOfPktsPerLink, miniBatchSize,
-		packetSendingInterval, strategy, enableDadeAlgorithm, enableDedaAlgorithm,
+		packetSendingInterval, secPathMabStrategy, enableDadeAlgorithm, enableDedaAlgorithm,
 		minAckForRttEstimation, experimentTimeElapsedMs)
 	// 进行 request
 	err := request.PostJson(initOsmdUrl, initOsmdInstance)
@@ -183,7 +86,7 @@ func (vm *ValidationManager) InitOsmdInner(nodeIndex int,
 	return nil
 }
 
-func (vm *ValidationManager) StartOsmdInner(nodeIndex int) error {
+func StartOsmd(nodeIndex int) error {
 	// 进行监听端口的获取
 	containerListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
 	// 进行 url 的构造
@@ -199,70 +102,55 @@ func (vm *ValidationManager) StartOsmdInner(nodeIndex int) error {
 	return nil
 }
 
-func (vm *ValidationManager) StartRetrieveAcksInner(nodeIndex int) error {
-	// 进行监听接口获取
+func SetScheduledMaliciousParams(nodeIndex, employedEpochOrTimestampMs, corruptRatioStart, corruptRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd int) error {
+	// 进行 container 的监听节点的获取
 	containerListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
-	// 进行 url 的构造
-	startRetrieveAcksUrl := fmt.Sprintf("http://%s:%d/%s",
-		configs.TopConfigInstance.NetworkConfig.BackendAddr,
-		containerListenPort,
-		StartRetrieveAcksUrl)
-	// 进行 request
-	err := request.PostJson(startRetrieveAcksUrl, nil)
-	if err != nil {
-		return fmt.Errorf("post start retrieve acks failed %v", err)
-	}
-	return nil
-}
-
-func (vm *ValidationManager) SetScheduledMaliciousParamsInner(nodeIndex, employedEpochOrTimestampMs, corruptRatioStart, corruptRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd int) error {
-	// 进行监听接口的获取
-	containerListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
-	// 进行 url 的构造
-	setScheduledMaliciousParamsUrl := fmt.Sprintf("http://%s:%d/%s",
+	// 进行 source 的监听节点的获取
+	sourceListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + 1
+	// 进行 container url 的构造
+	setContainerScheduledMaliciousParamsUrl := fmt.Sprintf("http://%s:%d/%s",
 		configs.TopConfigInstance.NetworkConfig.BackendAddr,
 		containerListenPort,
 		SetSchduledMaliciousParamsUrl)
-	// 进行 changeCorruptRatioInstance 的构造
-	scheduledMaliciousParmasInstance := entities.NewScheduledMaliciousParams(employedEpochOrTimestampMs, nodeIndex, corruptRatioStart,
-		corruptRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd)
-	// 进行 request
-	err := request.PostJson(setScheduledMaliciousParamsUrl, scheduledMaliciousParmasInstance)
-	if err != nil {
-		return fmt.Errorf("post set scheduled malicious params failed %v", err)
-	}
-	return nil
-}
-
-func (vm *ValidationManager) SetScheduledMaliciousParamsToSource(nodeIndex, employedEpochOrTimestampMs, corruptRatioStart, corruptRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd int) error {
-	// 进行监听接口的获取
-	sourceListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + 1
-	// 进行 url 的构造
-	setScheduledMaliciousParamsUrl := fmt.Sprintf("http://%s:%d/%s",
+	// 进行 source url 的构造
+	setSourceScheduledMaliciousParamsUrl := fmt.Sprintf("http://%s:%d/%s",
 		configs.TopConfigInstance.NetworkConfig.BackendAddr,
 		sourceListenPort,
 		SetSchduledMaliciousParamsUrl)
-	// 进行 changeCorruptRatioInstance
+	// 进行参数实例的构造
 	scheduledMaliciousParmasInstance := entities.NewScheduledMaliciousParams(employedEpochOrTimestampMs, nodeIndex, corruptRatioStart,
 		corruptRatioEnd, corruptSpecialPacketRatioStart, corruptSpecialPacketRatioEnd)
-	// 进行 request
-	err := request.PostJson(setScheduledMaliciousParamsUrl, scheduledMaliciousParmasInstance)
+	// 利用两个 url 进行分别的 post
+	err := request.PostJson(setContainerScheduledMaliciousParamsUrl, scheduledMaliciousParmasInstance)
 	if err != nil {
-		return fmt.Errorf("post set scheduled malicious params failed %v", err)
+		return fmt.Errorf("post container set scheduled malicious params failed %v", err)
+	}
+	err = request.PostJson(setSourceScheduledMaliciousParamsUrl, scheduledMaliciousParmasInstance)
+	if err != nil {
+		return fmt.Errorf("post source set scheduled malicious params failed %v", err)
+	}
+	return nil
+}
+
+func ModifyBloomFilter(nodeIndex int, bfEffectiveBits int) error {
+	// 进行节点监听端口的获取
+	listenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
+	// 进行 url 构造
+	modifyBloomFilterUrl := fmt.Sprintf("http://%s:%d/%s",
+		configs.TopConfigInstance.NetworkConfig.BackendAddr,
+		listenPort,
+		ModifyBloomFilterUrl)
+	// 构造数据
+	modifyBloomFilterInstance := entities.NewModifyBloomFilter(bfEffectiveBits)
+	// 进行 request
+	err := request.PostJson(modifyBloomFilterUrl, modifyBloomFilterInstance)
+	if err != nil {
+		return fmt.Errorf("post modify bloom filter failed: %v", err)
 	}
 	return nil
 }
 
 func StartSync(nodeIndex int) error {
-	err := ValidationManagerInstance.StartSyncInner(nodeIndex)
-	if err != nil {
-		return fmt.Errorf("start synchronize failed: %v", err)
-	} else {
-		return nil
-	}
-}
-
-func (vm *ValidationManager) StartSyncInner(nodeIndex int) error {
 	// 进行监听端口的获取
 	containerListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
 
@@ -274,11 +162,32 @@ func (vm *ValidationManager) StartSyncInner(nodeIndex int) error {
 
 	currentTimestamp := time.Now().UnixMilli()
 
+	// 进行请求的发送
 	err := request.PostJson(startSynchronizeUrl, &entities.SyncInstance{
 		CurrentTimestamp: currentTimestamp,
 	})
 	if err != nil {
 		return fmt.Errorf("post start synchronize url failed %v", err)
+	}
+	return nil
+}
+
+func InsertSessionTableEntries(nodeIndex int, numberOfEntries int) error {
+	// 进行监听端口的获取
+	containerListenPort := configs.TopConfigInstance.NetworkConfig.ValidationNodePort + nodeIndex
+
+	// 进行 url 的构造
+	insertSessionTableEntriesUrl := fmt.Sprintf("http://%s:%d/%s",
+		configs.TopConfigInstance.NetworkConfig.BackendAddr,
+		containerListenPort,
+		InsertSessionTableEntriesUrl)
+
+	// 进行请求的发送
+	err := request.PostJson(insertSessionTableEntriesUrl, &entities.InsertSessionTableEntriesInstance{
+		NumberOfEntries: numberOfEntries,
+	})
+	if err != nil {
+		return fmt.Errorf("post insert session table entries url failed %v", err)
 	}
 	return nil
 }
