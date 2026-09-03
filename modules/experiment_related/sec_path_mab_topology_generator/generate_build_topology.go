@@ -26,7 +26,7 @@ func (buildTopologyDescription *BuildTopologyDescription) WriteBuildTopologyDesc
 	if err != nil {
 		return fmt.Errorf("marshal build topology description: %w", err)
 	}
-	if err := file.WriteStringIntoFile(destinationFile, string(bytes)); err != nil {
+	if err = file.WriteStringIntoFile(destinationFile, string(bytes)); err != nil {
 		return fmt.Errorf("write build topology description to %s: %w", destinationFile, err)
 	}
 	return nil

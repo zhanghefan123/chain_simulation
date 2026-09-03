@@ -1,4 +1,4 @@
-package entities
+package action
 
 type ScheduledMaliciousParams struct {
 	EmployedEpochOrTimestampMs     int `json:"employed_epoch_or_timestamp_ms"`

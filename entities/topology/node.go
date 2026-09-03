@@ -1,4 +1,4 @@
-package entities
+package topology
 
 type RatioDistribution struct {
 	Start float64 `json:"start"` // 起始值

@@ -1,4 +1,4 @@
-package entities
+package action
 
 // StartClient selected_network_layer: str, destination_port: int, processes: int, destinations: List[str], transmission_pattern: str
 type StartClient struct {

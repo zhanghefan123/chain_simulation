@@ -1,7 +1,7 @@
 package sec_path_mab
 
 type Config struct {
-	TopologyType              int     `mapstructure:"topology_type"`
+	Enabled                   bool    `mapstructure:"enabled"`
 	ExperimentType            int     `mapstructure:"experiment_type"`
 	NumberOfHops              int     `mapstructure:"number_of_hops"`
 	NumberOfIntermediateNodes int     `mapstructure:"number_of_intermediate_nodes"`

@@ -1,4 +1,4 @@
-package entities
+package action
 
 import (
 	"chain_simulation/configs"

@@ -1,7 +1,9 @@
 package run_normal
 
 import (
+	"chain_simulation/configs"
 	"chain_simulation/experiments/path_validation/batch_transmission"
+	"fmt"
 	"github.com/spf13/cobra"
 )
 
@@ -18,8 +20,11 @@ func CreateRunNormalCmd() *cobra.Command {
 }
 
 func RunNormalCommand() {
+	if err := configs.InitTopConfig(); err != nil {
+		fmt.Printf("initialize top-level config failed: %v\n", err)
+	}
 	err := batch_transmission.FastSelirBatchExperiment()
 	if err != nil {
-		panic(err)
+		fmt.Printf("run normal experiments failed: %v\n", err)
 	}
 }

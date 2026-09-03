@@ -1,4 +1,4 @@
-package entities
+package topology
 
 type Link struct {
 	SourceNode Node   `json:"source_node"`

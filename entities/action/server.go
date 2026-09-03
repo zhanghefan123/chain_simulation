@@ -1,4 +1,4 @@
-package entities
+package action
 
 // StartServer processes: int = -1, listen_port: int = -1, server_type: str = "", interface: str = "", ip_version: str = ""
 type StartServer struct {

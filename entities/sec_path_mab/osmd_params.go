@@ -1,6 +1,6 @@
 package sec_path_mab
 
-import "chain_simulation/entities"
+import "chain_simulation/entities/topology"
 
 // SourceDestParams 图的源节点和目的节点的参数
 type SourceDestParams struct {
@@ -12,8 +12,8 @@ type SourceDestParams struct {
 type SimNodeParam struct {
 	Index                     int                        `json:"index"`
 	Type                      string                     `json:"type"`
-	CorruptRatio              entities.RatioDistribution `json:"corrupt_ratio"`
-	CorruptSpecialPacketRatio entities.RatioDistribution `json:"corrupt_special_packet_ratio"`
+	CorruptRatio              topology.RatioDistribution `json:"corrupt_ratio"`
+	CorruptSpecialPacketRatio topology.RatioDistribution `json:"corrupt_special_packet_ratio"`
 }
 
 type SimAbsLinkParam struct {

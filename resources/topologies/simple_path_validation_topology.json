@@ -4,73 +4,229 @@
       "index": 1,
       "type": "LirNode",
       "x": 149,
-      "y": 195
+      "y": 195,
+      "special_params": {
+        "inner_router_type": 2,
+        "malicious_params": {
+          "corrupt_ratio": {
+            "start": 0,
+            "end": 0
+          },
+          "corrupt_special_ratio": {
+            "start": 0,
+            "end": 0
+          }
+        }
+      }
     },
     {
       "index": 2,
       "type": "LirNode",
       "x": 312,
-      "y": 195
+      "y": 195,
+      "special_params": {
+        "inner_router_type": 2,
+        "malicious_params": {
+          "corrupt_ratio": {
+            "start": 0,
+            "end": 0
+          },
+          "corrupt_special_ratio": {
+            "start": 0,
+            "end": 0
+          }
+        }
+      }
     },
     {
       "index": 3,
       "type": "LirNode",
       "x": 468,
-      "y": 194
+      "y": 194,
+      "special_params": {
+        "inner_router_type": 2,
+        "malicious_params": {
+          "corrupt_ratio": {
+            "start": 0,
+            "end": 0
+          },
+          "corrupt_special_ratio": {
+            "start": 0,
+            "end": 0
+          }
+        }
+      }
     },
     {
       "index": 4,
       "type": "LirNode",
       "x": 623,
-      "y": 195
+      "y": 195,
+      "special_params": {
+        "inner_router_type": 2,
+        "malicious_params": {
+          "corrupt_ratio": {
+            "start": 0,
+            "end": 0
+          },
+          "corrupt_special_ratio": {
+            "start": 0,
+            "end": 0
+          }
+        }
+      }
     },
     {
       "index": 5,
       "type": "LirNode",
       "x": 628,
-      "y": 308
+      "y": 308,
+      "special_params": {
+        "inner_router_type": 2,
+        "malicious_params": {
+          "corrupt_ratio": {
+            "start": 0,
+            "end": 0
+          },
+          "corrupt_special_ratio": {
+            "start": 0,
+            "end": 0
+          }
+        }
+      }
     },
     {
       "index": 6,
       "type": "LirNode",
       "x": 632,
-      "y": 427
+      "y": 427,
+      "special_params": {
+        "inner_router_type": 2,
+        "malicious_params": {
+          "corrupt_ratio": {
+            "start": 0,
+            "end": 0
+          },
+          "corrupt_special_ratio": {
+            "start": 0,
+            "end": 0
+          }
+        }
+      }
     },
     {
       "index": 7,
       "type": "LirNode",
       "x": 481,
-      "y": 430
+      "y": 430,
+      "special_params": {
+        "inner_router_type": 2,
+        "malicious_params": {
+          "corrupt_ratio": {
+            "start": 0,
+            "end": 0
+          },
+          "corrupt_special_ratio": {
+            "start": 0,
+            "end": 0
+          }
+        }
+      }
     },
     {
       "index": 8,
       "type": "LirNode",
       "x": 330,
-      "y": 431
+      "y": 431,
+      "special_params": {
+        "inner_router_type": 2,
+        "malicious_params": {
+          "corrupt_ratio": {
+            "start": 0,
+            "end": 0
+          },
+          "corrupt_special_ratio": {
+            "start": 0,
+            "end": 0
+          }
+        }
+      }
     },
     {
       "index": 9,
       "type": "LirNode",
       "x": 139.5,
-      "y": 430.5
+      "y": 430.5,
+      "special_params": {
+        "inner_router_type": 2,
+        "malicious_params": {
+          "corrupt_ratio": {
+            "start": 0,
+            "end": 0
+          },
+          "corrupt_special_ratio": {
+            "start": 0,
+            "end": 0
+          }
+        }
+      }
     },
     {
       "index": 10,
       "type": "LirNode",
       "x": 141.5,
-      "y": 569.5
+      "y": 569.5,
+      "special_params": {
+        "inner_router_type": 2,
+        "malicious_params": {
+          "corrupt_ratio": {
+            "start": 0,
+            "end": 0
+          },
+          "corrupt_special_ratio": {
+            "start": 0,
+            "end": 0
+          }
+        }
+      }
     },
     {
       "index": 11,
       "type": "LirNode",
       "x": 329.5,
-      "y": 571.5
+      "y": 571.5,
+      "special_params": {
+        "inner_router_type": 2,
+        "malicious_params": {
+          "corrupt_ratio": {
+            "start": 0,
+            "end": 0
+          },
+          "corrupt_special_ratio": {
+            "start": 0,
+            "end": 0
+          }
+        }
+      }
     },
     {
       "index": 12,
       "type": "LirNode",
       "x": 497,
-      "y": 572
+      "y": 572,
+      "special_params": {
+        "inner_router_type": 2,
+        "malicious_params": {
+          "corrupt_ratio": {
+            "start": 0,
+            "end": 0
+          },
+          "corrupt_special_ratio": {
+            "start": 0,
+            "end": 0
+          }
+        }
+      }
     }
   ],
   "links": [

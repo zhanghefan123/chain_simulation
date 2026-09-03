@@ -27,12 +27,12 @@ func GenerateFastSelirEvents() ([]*entities.Event, error) {
 		return nil, fmt.Errorf("get breakpoint failed: %v", err)
 	}
 	simulationCount := 1
-	processCount := 12
-	hopCount := 11
+	processCount := 2
+	hopCount := 3
 	pathValidationProtocols := []string{"FAST_SELIR"}
 	for _, pathValidationProtocol := range pathValidationProtocols {
 		for currentHop := 2; currentHop < hopCount; currentHop += 2 {
-			for currentProcess := 2; currentProcess < processCount; currentProcess += 2 {
+			for currentProcess := 1; currentProcess < processCount; currentProcess += 2 {
 				for simulationIndex := 0; simulationIndex < simulationCount; simulationIndex++ {
 					serverIndex := 1 + currentHop
 					networkInterface := fmt.Sprintf("ln%d_idx1", serverIndex)
@@ -45,8 +45,8 @@ func GenerateFastSelirEvents() ([]*entities.Event, error) {
 						continue
 					}
 
-					// ------------------------------- 进行所有的布隆过滤器的配置 -------------------------------
-					currentTime += time.Second * 200
+					// 进行所有的布隆过滤器的配置
+					currentTime += time.Second * 10
 					modifyBloomFilterEvent := &entities.Event{
 						StartTime: currentTime,
 						Action:    types.ActionType_ModifyBloomFilter,
@@ -65,7 +65,7 @@ func GenerateFastSelirEvents() ([]*entities.Event, error) {
 					}
 					fastSelirEvents = append(fastSelirEvents, modifyBloomFilterEvent)
 
-					// ------------------------------- 添加服务器事件 -------------------------------
+					// 添加服务器事件
 					currentTime += time.Second * 25
 					serverEvent := &entities.Event{
 						StartTime: currentTime,
@@ -91,9 +91,8 @@ func GenerateFastSelirEvents() ([]*entities.Event, error) {
 						},
 					}
 					fastSelirEvents = append(fastSelirEvents, serverEvent)
-					// ------------------------------- 添加服务器事件 -------------------------------
 
-					// ------------------------------- 添加客户端事件 -------------------------------
+					// 添加客户端事件
 					currentTime += time.Second * 1
 					clientEvent := &entities.Event{
 						StartTime: currentTime,
@@ -118,14 +117,25 @@ func GenerateFastSelirEvents() ([]*entities.Event, error) {
 						},
 					}
 					fastSelirEvents = append(fastSelirEvents, clientEvent)
-					// ------------------------------- 添加客户端事件 -------------------------------
+
+					// 进行等待
+					currentTime += time.Second * 40
+					waitExperimentFinishEvent := &entities.Event{
+						StartTime: currentTime,
+						Action:    types.ActionType_WaitExperimentFinish,
+						Handler: func() error {
+							fmt.Println("wait experiment finish")
+							return nil
+						},
+					}
+					fastSelirEvents = append(fastSelirEvents, waitExperimentFinishEvent)
 				}
 			}
 		}
 	}
 
 	// ------------------------------- 进行后端的删除  -------------------------------
-	currentTime += time.Second * 200
+	currentTime += time.Second * 40
 	backendStopEvent := &entities.Event{
 		StartTime: currentTime,
 		Action:    types.ActionType_StopTopology,

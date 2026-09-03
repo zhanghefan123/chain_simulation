@@ -6,7 +6,7 @@ import (
 )
 
 func ModifyYml(filePath string, mapping map[string]string) error {
-	fmt.Printf("modifyYml %s\n", filePath)
+	fmt.Printf("modifyYml %s dir\n", filePath)
 	var modified = false
 	// 1. 进行文件内容读取
 	result, err := ReadFile(filePath)

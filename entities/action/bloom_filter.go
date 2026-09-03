@@ -1,4 +1,4 @@
-package entities
+package action
 
 type ModifyBloomFilter struct {
 	BfEffectiveBits int `json:"bf_effective_bits"`

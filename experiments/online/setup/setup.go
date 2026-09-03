@@ -1,12 +1,11 @@
 package setup
 
 import (
-	sec_path_mab_topology_generator2 "chain_simulation/modules/experiment_related/sec_path_mab_topology_generator"
+	"chain_simulation/modules/experiment_related/sec_path_mab_topology_generator"
 	"fmt"
 	"path"
 
 	"chain_simulation/configs"
-	"chain_simulation/entities/types"
 	onlineexecutor "chain_simulation/experiments/online/executor"
 )
 
@@ -32,9 +31,8 @@ func UpdateExperimentEnvironment() error {
 		"topologies/sec_path_mab_topology.json",
 	)
 
-	switch types.SecPathMabTopologyType(configs.TopConfigInstance.SecPathMabConfig.TopologyType) {
-	case types.SecPathMabTopologyType_NON_LINEAR_TEST_TOPOLOGY:
-		description := sec_path_mab_topology_generator2.GenerateNonLinearTopologyDescription(
+	if configs.TopConfigInstance.SecPathMabConfig.Enabled {
+		description := sec_path_mab_topology_generator.GenerateNonLinearTopologyDescription(
 			configs.TopConfigInstance.SecPathMabConfig.NumberOfHops,
 			configs.TopConfigInstance.SecPathMabConfig.NumberOfIntermediateNodes,
 			configs.TopConfigInstance.SecPathMabConfig.LowCorruptRatio,
@@ -43,25 +41,18 @@ func UpdateExperimentEnvironment() error {
 		if err := description.WriteNonLinearTopologyDescription(simulatorTopologyPath); err != nil {
 			return err
 		}
-		backendDescription := sec_path_mab_topology_generator2.GenerateBuildTopologyDescription(description)
+		backendDescription := sec_path_mab_topology_generator.GenerateBuildTopologyDescription(description)
 		return backendDescription.WriteBuildTopologyDescription(backendTopologyPath)
-
-	case types.SecPathMabTopologyType_LINEAR_TEST_TOPOLOGY:
-		description := sec_path_mab_topology_generator2.GenerateLinearTopologyDescription(
+	} else {
+		description := sec_path_mab_topology_generator.GenerateLinearTopologyDescription(
 			configs.TopConfigInstance.SecPathMabConfig.NumberOfHops,
 		)
 		if err := description.WriteLinearTopologyDescription(simulatorTopologyPath); err != nil {
 			return err
 		}
-		backendDescription := sec_path_mab_topology_generator2.GenerateBuildTopologyDescription(
+		backendDescription := sec_path_mab_topology_generator.GenerateBuildTopologyDescription(
 			description.ToOsmdTopologyDescription(),
 		)
 		return backendDescription.WriteBuildTopologyDescription(backendTopologyPath)
-
-	default:
-		return fmt.Errorf(
-			"unsupported SecPathMAB topology type: %d",
-			configs.TopConfigInstance.SecPathMabConfig.TopologyType,
-		)
 	}
 }

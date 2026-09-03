@@ -1,4 +1,4 @@
-package entities
+package topology
 
 import (
 	"chain_simulation/configs"
@@ -17,6 +17,15 @@ var (
 	TopologySecPathMab              = "../resources/topologies/sec_path_mab_topology.json"
 )
 
+var topologyPathMapping = map[types.TopologyType]string{
+	types.TopologyType_HyperledgerFabric:       TopologyPathFabric,
+	types.TopologyType_FiscoBcos:               TopologyPathFisco,
+	types.TopologyType_ChainMaker:              TopologyPathChainmaker,
+	types.TopologyType_SimplePathValidation:    TopologySimplePathValidation,
+	types.TopologyType_MulticastPathValidation: TopologyMulticastPathValidation,
+	types.TopologyType_SecPathMab:              TopologySecPathMab,
+}
+
 type BlockChainParams struct {
 	ConsensusThreadCount int    `json:"consensus_thread_count"`
 	BlockchainType       string `json:"blockchain_type"`
@@ -25,7 +34,7 @@ type BlockChainParams struct {
 }
 
 type SecPathMabParams struct {
-	TopologyType           int  `json:"topology_type"`
+	Enabled                bool `json:"enabled"`
 	ExperimentType         int  `json:"experiment_type"`
 	SecPathMabEnabled      bool `json:"sec_path_mab_enabled"`
 	SecPathMabType         int  `json:"sec_path_mab_type"`
@@ -33,16 +42,16 @@ type SecPathMabParams struct {
 	NumberOfSegmentsPerHop int  `json:"number_of_segments_per_hop"`
 }
 
-type TopologyParams struct {
+type Params struct {
 	Nodes        []Node  `json:"nodes"`
 	Links        []Link  `json:"links"`
 	PerLinkDelay float64 `json:"per_link_delay"`
 }
 
-type TopologyStartParams struct {
+type StartParams struct {
 	BlockChainParams BlockChainParams `json:"block_chain_params"`
 	SecPathMabParams SecPathMabParams `json:"sec_path_mab_params"`
-	TopologyParams   TopologyParams   `json:"topology_params"`
+	TopologyParams   Params           `json:"topology_params"`
 }
 
 type DynamicParameters struct {
@@ -51,21 +60,21 @@ type DynamicParameters struct {
 	PerLinkDelay         float64
 }
 
-func NewTopologyStartParams(topologyType types.TopologyType, dynamicParameters *DynamicParameters) (*TopologyStartParams, error) {
-	topology := &TopologyStartParams{
+func NewStartParams(topologyType types.TopologyType, dynamicParameters *DynamicParameters) (*StartParams, error) {
+	topology := &StartParams{
 		BlockChainParams: BlockChainParams{
 			ConsensusThreadCount: dynamicParameters.ConsensusThreadCount,
 			BlockchainType:       "",
 			ConsensusType:        "",
 		},
 		SecPathMabParams: SecPathMabParams{
-			TopologyType:           configs.TopConfigInstance.SecPathMabConfig.TopologyType,
+			Enabled:                configs.TopConfigInstance.SecPathMabConfig.Enabled,
 			ExperimentType:         configs.TopConfigInstance.SecPathMabConfig.ExperimentType,
 			SecPathMabType:         int(dynamicParameters.SecPathMabType),
 			NumberOfHops:           configs.TopConfigInstance.SecPathMabConfig.NumberOfHops,
 			NumberOfSegmentsPerHop: configs.TopConfigInstance.SecPathMabConfig.NumberOfIntermediateNodes,
 		},
-		TopologyParams: TopologyParams{
+		TopologyParams: Params{
 			Nodes:        make([]Node, 0),
 			Links:        make([]Link, 0),
 			PerLinkDelay: dynamicParameters.PerLinkDelay,
@@ -84,7 +93,7 @@ func NewTopologyStartParams(topologyType types.TopologyType, dynamicParameters *
 	return topology, nil
 }
 
-func loadInformation(topologyStartParams *TopologyStartParams, topologyType types.TopologyType) error {
+func loadInformation(topologyStartParams *StartParams, topologyType types.TopologyType) error {
 	switch topologyType {
 	case types.TopologyType_HyperledgerFabric:
 		topologyStartParams.BlockChainParams.BlockchainType = "fabric"
@@ -110,62 +119,20 @@ func loadInformation(topologyStartParams *TopologyStartParams, topologyType type
 	return nil
 }
 
-func loadNodesAndLinks(topologyStartParams *TopologyStartParams, topologyType types.TopologyType) error {
-	switch topologyType {
-	case types.TopologyType_HyperledgerFabric:
-		result, err := file.ReadFile(TopologyPathFabric)
-		if err != nil {
-			return fmt.Errorf("read file error")
-		}
-		err = json.Unmarshal([]byte(result), &topologyStartParams.TopologyParams)
-		if err != nil {
-			return fmt.Errorf("unmarshal error")
-		}
-	case types.TopologyType_FiscoBcos:
-		result, err := file.ReadFile(TopologyPathFisco)
-		if err != nil {
-			return fmt.Errorf("read file error")
-		}
-		err = json.Unmarshal([]byte(result), &topologyStartParams.TopologyParams)
-		if err != nil {
-			return fmt.Errorf("unmarshal error")
-		}
-	case types.TopologyType_ChainMaker:
-		result, err := file.ReadFile(TopologyPathChainmaker)
-		if err != nil {
-			return fmt.Errorf("read file error")
-		}
-		err = json.Unmarshal([]byte(result), &topologyStartParams.TopologyParams)
-		if err != nil {
-			return fmt.Errorf("unmarshal error")
-		}
-	case types.TopologyType_SimplePathValidation:
-		result, err := file.ReadFile(TopologySimplePathValidation)
-		if err != nil {
-			return fmt.Errorf("read file error")
-		}
-		err = json.Unmarshal([]byte(result), &topologyStartParams.TopologyParams)
-		if err != nil {
-			return fmt.Errorf("unmarshal error")
-		}
-	case types.TopologyType_MulticastPathValidation:
-		result, err := file.ReadFile(TopologyMulticastPathValidation)
-		if err != nil {
-			return fmt.Errorf("read file error")
-		}
-		err = json.Unmarshal([]byte(result), &topologyStartParams.TopologyParams)
-		if err != nil {
-			return fmt.Errorf("unmarshal error")
-		}
-	case types.TopologyType_SecPathMab:
-		result, err := file.ReadFile(TopologySecPathMab)
-		if err != nil {
-			return fmt.Errorf("read file error")
-		}
-		err = json.Unmarshal([]byte(result), &topologyStartParams.TopologyParams)
-		if err != nil {
-			return fmt.Errorf("unmarshal error")
-		}
+func loadNodesAndLinks(topologyStartParams *StartParams, topologyType types.TopologyType) error {
+	topologyPath, ok := topologyPathMapping[topologyType]
+	if !ok {
+		return fmt.Errorf("unsupported topology type: %v", topologyType)
 	}
+
+	result, err := file.ReadFile(topologyPath)
+	if err != nil {
+		return fmt.Errorf("read topology file %s failed: %w", topologyPath, err)
+	}
+
+	if err := json.Unmarshal([]byte(result), &topologyStartParams.TopologyParams); err != nil {
+		return fmt.Errorf("unmarshal topology file %s failed: %w", topologyPath, err)
+	}
+
 	return nil
 }

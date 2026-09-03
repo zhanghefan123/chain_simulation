@@ -31,19 +31,20 @@ const (
 	ActionType_StartConsensus        ActionType = 4
 	ActionType_StopConsensus         ActionType = 5
 	ActionType_WaitTopologyRemove    ActionType = 6
-	ActionType_StartClient           ActionType = 7
-	ActionType_StartServer           ActionType = 8
-	ActionType_InitOsmd              ActionType = 9
-	ActionType_StartOsmd             ActionType = 10
-	ActionType_StartRetrieveAcks     ActionType = 11
-	ActionType_ChangeCorruptRatio    ActionType = 12
-	ActionType_ModifyBloomFilter     ActionType = 13
-	ActionType_ResultHandling        ActionType = 14
-	ActionType_ClearKernelLog        ActionType = 15
-	ActionType_RemoveKernelModule    ActionType = 16
-	ActionType_InstallKernelModule   ActionType = 17
-	ActionType_SynchronizeTimestamp  ActionType = 18
-	ActionType_DoNothing             ActionType = 19
+	ActionType_WaitExperimentFinish  ActionType = 7
+	ActionType_StartClient           ActionType = 8
+	ActionType_StartServer           ActionType = 9
+	ActionType_InitOsmd              ActionType = 10
+	ActionType_StartOsmd             ActionType = 11
+	ActionType_StartRetrieveAcks     ActionType = 12
+	ActionType_ChangeCorruptRatio    ActionType = 13
+	ActionType_ModifyBloomFilter     ActionType = 14
+	ActionType_ResultHandling        ActionType = 15
+	ActionType_ClearKernelLog        ActionType = 16
+	ActionType_RemoveKernelModule    ActionType = 17
+	ActionType_InstallKernelModule   ActionType = 18
+	ActionType_SynchronizeTimestamp  ActionType = 19
+	ActionType_DoNothing             ActionType = 20
 )
 
 // Enum value maps for ActionType.
@@ -56,19 +57,20 @@ var (
 		4:  "StartConsensus",
 		5:  "StopConsensus",
 		6:  "WaitTopologyRemove",
-		7:  "StartClient",
-		8:  "StartServer",
-		9:  "InitOsmd",
-		10: "StartOsmd",
-		11: "StartRetrieveAcks",
-		12: "ChangeCorruptRatio",
-		13: "ModifyBloomFilter",
-		14: "ResultHandling",
-		15: "ClearKernelLog",
-		16: "RemoveKernelModule",
-		17: "InstallKernelModule",
-		18: "SynchronizeTimestamp",
-		19: "DoNothing",
+		7:  "WaitExperimentFinish",
+		8:  "StartClient",
+		9:  "StartServer",
+		10: "InitOsmd",
+		11: "StartOsmd",
+		12: "StartRetrieveAcks",
+		13: "ChangeCorruptRatio",
+		14: "ModifyBloomFilter",
+		15: "ResultHandling",
+		16: "ClearKernelLog",
+		17: "RemoveKernelModule",
+		18: "InstallKernelModule",
+		19: "SynchronizeTimestamp",
+		20: "DoNothing",
 	}
 	ActionType_value = map[string]int32{
 		"StartTopology":         0,
@@ -78,19 +80,20 @@ var (
 		"StartConsensus":        4,
 		"StopConsensus":         5,
 		"WaitTopologyRemove":    6,
-		"StartClient":           7,
-		"StartServer":           8,
-		"InitOsmd":              9,
-		"StartOsmd":             10,
-		"StartRetrieveAcks":     11,
-		"ChangeCorruptRatio":    12,
-		"ModifyBloomFilter":     13,
-		"ResultHandling":        14,
-		"ClearKernelLog":        15,
-		"RemoveKernelModule":    16,
-		"InstallKernelModule":   17,
-		"SynchronizeTimestamp":  18,
-		"DoNothing":             19,
+		"WaitExperimentFinish":  7,
+		"StartClient":           8,
+		"StartServer":           9,
+		"InitOsmd":              10,
+		"StartOsmd":             11,
+		"StartRetrieveAcks":     12,
+		"ChangeCorruptRatio":    13,
+		"ModifyBloomFilter":     14,
+		"ResultHandling":        15,
+		"ClearKernelLog":        16,
+		"RemoveKernelModule":    17,
+		"InstallKernelModule":   18,
+		"SynchronizeTimestamp":  19,
+		"DoNothing":             20,
 	}
 )
 
@@ -125,7 +128,7 @@ var File_action_proto protoreflect.FileDescriptor
 
 const file_action_proto_rawDesc = "" +
 	"\n" +
-	"\faction.proto*\xa3\x03\n" +
+	"\faction.proto*\xbd\x03\n" +
 	"\n" +
 	"ActionType\x12\x11\n" +
 	"\rStartTopology\x10\x00\x12\x10\n" +
@@ -134,21 +137,22 @@ const file_action_proto_rawDesc = "" +
 	"\vStartAttack\x10\x03\x12\x12\n" +
 	"\x0eStartConsensus\x10\x04\x12\x11\n" +
 	"\rStopConsensus\x10\x05\x12\x16\n" +
-	"\x12WaitTopologyRemove\x10\x06\x12\x0f\n" +
-	"\vStartClient\x10\a\x12\x0f\n" +
-	"\vStartServer\x10\b\x12\f\n" +
-	"\bInitOsmd\x10\t\x12\r\n" +
-	"\tStartOsmd\x10\n" +
-	"\x12\x15\n" +
-	"\x11StartRetrieveAcks\x10\v\x12\x16\n" +
-	"\x12ChangeCorruptRatio\x10\f\x12\x15\n" +
-	"\x11ModifyBloomFilter\x10\r\x12\x12\n" +
-	"\x0eResultHandling\x10\x0e\x12\x12\n" +
-	"\x0eClearKernelLog\x10\x0f\x12\x16\n" +
-	"\x12RemoveKernelModule\x10\x10\x12\x17\n" +
-	"\x13InstallKernelModule\x10\x11\x12\x18\n" +
-	"\x14SynchronizeTimestamp\x10\x12\x12\r\n" +
-	"\tDoNothing\x10\x13B\n" +
+	"\x12WaitTopologyRemove\x10\x06\x12\x18\n" +
+	"\x14WaitExperimentFinish\x10\a\x12\x0f\n" +
+	"\vStartClient\x10\b\x12\x0f\n" +
+	"\vStartServer\x10\t\x12\f\n" +
+	"\bInitOsmd\x10\n" +
+	"\x12\r\n" +
+	"\tStartOsmd\x10\v\x12\x15\n" +
+	"\x11StartRetrieveAcks\x10\f\x12\x16\n" +
+	"\x12ChangeCorruptRatio\x10\r\x12\x15\n" +
+	"\x11ModifyBloomFilter\x10\x0e\x12\x12\n" +
+	"\x0eResultHandling\x10\x0f\x12\x12\n" +
+	"\x0eClearKernelLog\x10\x10\x12\x16\n" +
+	"\x12RemoveKernelModule\x10\x11\x12\x17\n" +
+	"\x13InstallKernelModule\x10\x12\x12\x18\n" +
+	"\x14SynchronizeTimestamp\x10\x13\x12\r\n" +
+	"\tDoNothing\x10\x14B\n" +
 	"Z\b../typesb\x06proto3"
 
 var (
