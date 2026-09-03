@@ -4,7 +4,7 @@ import (
 	"chain_simulation/entities"
 	"chain_simulation/entities/types"
 	"chain_simulation/experiments"
-	"chain_simulation/modules/breakpoint_awareness"
+	"chain_simulation/modules/experiment_related/breakpoint_awareness"
 	"chain_simulation/modules/topology_manager"
 	"chain_simulation/modules/validation_manager"
 	"fmt"
@@ -21,7 +21,7 @@ func GenerateEpicEvents() ([]*entities.Event, error) {
 			return topology_manager.StartTopology(topologyType, &entities.DynamicParameters{ConsensusThreadCount: 0})
 		},
 	}}
-	calculatedMapping, err := breakpoint_awareness.GetAlreadyCaclulatedFileTransmissionResult("/home/zhf/Projects/emulator/backend/cmd/final_result")
+	calculatedMapping, err := breakpoint_awareness.GetAlreadyCaclulatedResult("/home/zhf/Projects/emulator/backend/cmd/final_result")
 	if err != nil {
 		return nil, fmt.Errorf("get breakpoint failed: %v", err)
 	}
@@ -54,9 +54,16 @@ func GenerateEpicEvents() ([]*entities.Event, error) {
 					Handler: func() error {
 						go func() {
 							// content 如果为 "" 则会启用 input 要求用户进行输入
-							err = validation_manager.StartClient(serverIndex, currentProcess, "EPIC_SESSION_SETUP", 31313,
-								sessionSetupDestinations, "single", 1024, 1024, "a",
-								0, 0, 0)
+							err = validation_manager.StartClient(serverIndex, &entities.StartClient{
+								SelectedNetworkLayer: "EPIC_SESSION_SETUP",
+								DestinationPort:      31313,
+								Processes:            currentProcess,
+								Destinations:         sessionSetupDestinations,
+								TransmissionPattern:  "single",
+								FileSize:             1024,
+								BufferSize:           1024,
+								Content:              "a",
+							})
 							if err != nil {
 								fmt.Printf("epic start client error: %v", err)
 							}
@@ -74,8 +81,16 @@ func GenerateEpicEvents() ([]*entities.Event, error) {
 					Action:    types.ActionType_StartServer,
 					Handler: func() error {
 						go func() {
-							err = validation_manager.StartServer(serverIndex, currentProcess, pathValidationProtocol, simulationIndex,
-								31313, "multiprocess_file", networkInterface, "Ipv4", 1, "")
+							err = validation_manager.StartServer(serverIndex, &entities.StartServer{
+								Processes:            currentProcess,
+								ListenPort:           31313,
+								SimulationIndex:      simulationIndex,
+								NumberOfDestinations: 1,
+								SelectedNetworkLayer: pathValidationProtocol,
+								ServerType:           "multiprocess_file",
+								Interface:            networkInterface,
+								IpVersion:            "Ipv4",
+							})
 							if err != nil {
 								fmt.Printf("epic start server error: %v", err)
 							}
@@ -94,9 +109,15 @@ func GenerateEpicEvents() ([]*entities.Event, error) {
 					Handler: func() error {
 						go func() {
 							// 对于 file 传输模式, 没有关系
-							err = validation_manager.StartClient(1, currentProcess, "EPIC_DATA", 31313, destinations,
-								"file", 1024, 512, "",
-								0, 0, 0)
+							err = validation_manager.StartClient(1, &entities.StartClient{
+								SelectedNetworkLayer: "EPIC_DATA",
+								DestinationPort:      31313,
+								Processes:            currentProcess,
+								Destinations:         destinations,
+								TransmissionPattern:  "file",
+								FileSize:             1024,
+								BufferSize:           512,
+							})
 							if err != nil {
 								fmt.Printf("epic start client error: %v", err)
 							}

@@ -1,0 +1,226 @@
+package batch_transmission
+
+import (
+	"chain_simulation/entities"
+	"chain_simulation/entities/types"
+	"chain_simulation/experiments"
+	"chain_simulation/modules/experiment_related/breakpoint_awareness"
+	"chain_simulation/modules/experiment_related/fast_selir"
+	"chain_simulation/modules/topology_manager"
+	"chain_simulation/modules/validation_manager"
+	"chain_simulation/utils/file"
+	"fmt"
+	"time"
+)
+
+func GenerateFastSelirNewBatchEvents() ([]*entities.Event, error) {
+	var fastSelirBatchEvents []*entities.Event
+
+	// 添加拓扑启动事件
+	currentTime := time.Second * 10
+	var topoStartEvent = &entities.Event{
+		StartTime: currentTime,
+		Action:    types.ActionType_StartTopology,
+		Handler: func() error {
+			return topology_manager.StartTopology(topologyType, &entities.DynamicParameters{ConsensusThreadCount: 0})
+		},
+	}
+	fastSelirBatchEvents = append(fastSelirBatchEvents, topoStartEvent)
+	// 添加清理内核日志事件
+	clearKernelLogEvent := &entities.Event{
+		StartTime: currentTime,
+		Action:    types.ActionType_ClearKernelLog,
+		Handler: func() error {
+			go func() {
+				fmt.Printf("clear kernel log\n")
+				kernelLogFilePath := "/var/log/kern.log"
+				// 进行原始文件的清空
+				err := file.ClearFile(kernelLogFilePath)
+				if err != nil {
+					fmt.Printf("cannot clear file: %v", err)
+				}
+			}()
+			return nil
+		},
+	}
+	fastSelirBatchEvents = append(fastSelirBatchEvents, clearKernelLogEvent)
+	// 获取已经计算的结果
+	calculatedMapping, err := breakpoint_awareness.GetAlreadyCaclulatedResult("/home/zhf/Projects/emulator/backend/cmd/final_result")
+	if err != nil {
+		return nil, fmt.Errorf("get break point failed due to: %v", err)
+	}
+
+	// 内部持续部署任务 - 将内部事件添加到总事件列表中
+	internalEvents, currentTime := GetInternalEvents(currentTime, []string{"OPT"}, 11, 2, calculatedMapping)
+	fastSelirBatchEvents = append(fastSelirBatchEvents, internalEvents...)
+
+	// 结束操作
+	currentTime += 40 * time.Second
+	removeEvent := &entities.Event{
+		StartTime: currentTime,
+		Action:    types.ActionType_StopTopology,
+		Handler: func() error {
+			return topology_manager.StopTopology()
+		},
+	}
+	fastSelirBatchEvents = append(fastSelirBatchEvents, removeEvent)
+
+	currentTime += 40 * time.Second
+	waitStopEvent := &entities.Event{
+		StartTime: currentTime,
+		Action:    types.ActionType_WaitTopologyRemove,
+		Handler: func() error {
+			return nil
+		},
+	}
+	fastSelirBatchEvents = append(fastSelirBatchEvents, waitStopEvent)
+	return fastSelirBatchEvents, nil
+}
+
+func GetInternalEvents(currentTime time.Duration, pathValidationProtocols []string, hopCount int, stepSize int, calculatedMapping map[string]struct{}) ([]*entities.Event, time.Duration) {
+	var err error
+	var internalEvents []*entities.Event
+	for _, pathValidationProtocol := range pathValidationProtocols {
+		for currentHop := 2; currentHop < hopCount; currentHop += stepSize {
+			// 获取服务器索引
+			serverIndex := 1 + currentHop
+			// 获取服务器名称
+			serverName := fmt.Sprintf("LirNode-%d", serverIndex)
+			// 获取接口名称
+			networkInterface := fmt.Sprintf("ln%d_idx1", serverIndex)
+			// 获取在这个参数下的文件名称
+			filePath := fmt.Sprintf("%s_batch_result_node_name_%s.txt", pathValidationProtocol, serverName)
+			// 判断是否已经计算过了
+			if _, ok := calculatedMapping[filePath]; ok {
+				fmt.Println("already calculated")
+				continue
+			}
+			destinations := []string{serverName}
+
+			// 进行布隆过滤器大小修改
+			currentTime += time.Second * 10
+			modifyBloomFilterEvent := &entities.Event{
+				StartTime: currentTime,
+				Action:    types.ActionType_ModifyBloomFilter,
+				Handler: func() error {
+					bfEffectiveBits := fast_selir.CalculateFastSelirBFBits(currentHop, 0.00001)
+					go func() {
+						for index := 1; index <= 1; index++ {
+							err = validation_manager.ModifyBloomFilter(index, &entities.ModifyBloomFilter{BfEffectiveBits: bfEffectiveBits})
+							if err != nil {
+								fmt.Printf("modify bloom filter failed: %v", err)
+							}
+						}
+					}()
+					return nil
+				},
+			}
+			internalEvents = append(internalEvents, modifyBloomFilterEvent)
+
+			// 添加服务器事件
+			currentTime += time.Second * 10
+			serverEvent := &entities.Event{
+				StartTime: currentTime,
+				Action:    types.ActionType_StartServer,
+				Handler: func() error {
+					go func() {
+						fmt.Printf("current start server %s\n", filePath)
+						err = validation_manager.StartServer(serverIndex, &entities.StartServer{
+							Processes:            1,
+							ListenPort:           31313,
+							NumberOfDestinations: 1,
+							SelectedNetworkLayer: pathValidationProtocol,
+							ServerType:           "text",
+							Interface:            networkInterface,
+							IpVersion:            "Ipv4",
+						})
+						if err != nil {
+							fmt.Printf("start server error: %v", err)
+						}
+					}()
+					return nil
+				},
+			}
+			internalEvents = append(internalEvents, serverEvent)
+
+			// 添加客户端事件
+			currentTime += time.Second * 1
+			clientEvent := &entities.Event{
+				StartTime: currentTime,
+				Action:    types.ActionType_StartClient,
+				Handler: func() error {
+					go func() {
+						batchSize := 1000
+						messageSize := 1024
+						interval := 0.1
+						fmt.Printf("current start client %s\n", filePath)
+						err = validation_manager.StartClient(1, &entities.StartClient{
+							SelectedNetworkLayer: pathValidationProtocol,
+							DestinationPort:      31313,
+							Processes:            1,
+							Destinations:         destinations,
+							TransmissionPattern:  "batch",
+							FileSize:             1024,
+							BufferSize:           1024,
+							MessageSize:          messageSize,
+							BatchSize:            batchSize,
+							Interval:             interval,
+						})
+						if err != nil {
+							fmt.Printf("start client error: %v", err)
+						}
+					}()
+					return nil
+				},
+			}
+			internalEvents = append(internalEvents, clientEvent)
+
+			// 添加结果处理事件
+			currentTime += time.Second * 150
+			resultProcessingEvent := &entities.Event{
+				StartTime: currentTime,
+				Action:    types.ActionType_ResultHandling,
+				Handler: func() error {
+					kernelLogFilePath := "/var/log/kern.log"
+					err = file.CopyFileWithName(kernelLogFilePath, "/home/zhf/Projects/emulator/backend/cmd/final_result/", filePath)
+					if err != nil {
+						fmt.Printf("copy file with name error: %v", err)
+					}
+					// 进行原始文件的清空
+					err = file.ClearFile(kernelLogFilePath)
+					if err != nil {
+						fmt.Printf("cannot clear file: %v", err)
+					}
+					return nil
+				},
+			}
+			internalEvents = append(internalEvents, resultProcessingEvent)
+		}
+	}
+
+	return internalEvents, currentTime
+}
+
+func FastSelirNewBatchExperiment() error {
+	configurationSettings := []*entities.ConfigurationSetting{
+		{
+			Mapping: map[string]string{},
+		},
+	}
+
+	fmt.Printf("fast selir experiment\n")
+	fastSelirBatchEvents, err := GenerateFastSelirNewBatchEvents()
+	fmt.Printf("number of events: %d\n", len(fastSelirBatchEvents))
+	if err != nil {
+		fmt.Printf("error to generate fast selir batch events: %v\n", err)
+	}
+
+	for _, configurationSetting := range configurationSettings {
+		err = experiments.SingleSimulation(configurationSetting, fastSelirBatchEvents)
+		if err != nil {
+			return fmt.Errorf("fast selir batch experiment failed: %v", err)
+		}
+	}
+
+	return nil
+}

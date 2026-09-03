@@ -1,65 +1,98 @@
 package backend_manager
 
 import (
-	"chain_simulation/configs"
-	"chain_simulation/modules/thread_manager"
-	"chain_simulation/utils/dir"
 	"context"
 	"fmt"
 	"os"
 	"os/exec"
+	"sync"
+
+	"chain_simulation/configs"
 )
 
-var BackendManagerInstance = NewBackendManager()
+var defaultManager = NewBackendManager()
 
 type BackendManager struct {
-	Cancel context.CancelFunc
+	mu        sync.Mutex
+	cancel    context.CancelFunc
+	command   *exec.Cmd
+	waitGroup sync.WaitGroup
 }
 
 func NewBackendManager() *BackendManager {
 	return &BackendManager{}
 }
 
-func StartBackendService(experimentIndex int) {
-	thread_manager.ThreadManagerInstance.Add()
-	go func() {
-		defer func() {
-			thread_manager.ThreadManagerInstance.Done()
-		}()
-		cmd := startBackendService(experimentIndex)
-		err := cmd.Wait()
-		if err != nil {
-			fmt.Printf("backend service error: %v\n", err)
-		}
-	}()
+// StartBackendService starts the backend process for one experiment. The
+// process runs asynchronously and is owned by the default backend manager.
+func StartBackendService(experimentIndex int) error {
+	return defaultManager.Start(experimentIndex)
 }
 
-func StopBackendService() {
-	BackendManagerInstance.Cancel()
+// StopBackendService stops the active backend process and waits for it to exit.
+// Calling StopBackendService when no process is running is safe.
+func StopBackendService() error {
+	return defaultManager.Stop()
 }
 
-func startBackendService(experimentIndex int) *exec.Cmd {
-	var cmd *exec.Cmd
-	var cmdPath = configs.TopConfigInstance.PathConfig.Cmd
-	var ctx context.Context
-	fmt.Println(cmdPath)
-	{
-		err := dir.WithContextManager(cmdPath, func() error {
-			// 1. 创建命令
-			ctx, BackendManagerInstance.Cancel = context.WithCancel(context.Background())
-			cmd = exec.CommandContext(ctx, "./cmd", "http_service", "-e", fmt.Sprintf("%d", experimentIndex))
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
+func (manager *BackendManager) Start(experimentIndex int) error {
+	manager.mu.Lock()
+	defer manager.mu.Unlock()
 
-			// 2. 后台启动
-			if err := cmd.Start(); err != nil {
-				fmt.Printf("start backend service error: %v\n", err)
-			}
-			return nil
-		})
-		if err != nil {
-			fmt.Printf("start backend service error: %v\n", err)
-		}
+	if manager.command != nil {
+		return fmt.Errorf("backend service is already running")
 	}
-	return cmd
+
+	ctx, cancel := context.WithCancel(context.Background())
+	command := exec.CommandContext(
+		ctx,
+		"./cmd",
+		"http_service",
+		"-e",
+		fmt.Sprintf("%d", experimentIndex),
+	)
+	command.Dir = configs.TopConfigInstance.PathConfig.Cmd
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
+
+	if err := command.Start(); err != nil {
+		cancel()
+		return fmt.Errorf("start backend service in %s: %w", command.Dir, err)
+	}
+
+	manager.cancel = cancel
+	manager.command = command
+	manager.waitGroup.Add(1)
+	go manager.waitForExit(ctx, command)
+	return nil
+}
+
+func (manager *BackendManager) Stop() error {
+	manager.mu.Lock()
+	cancel := manager.cancel
+	manager.mu.Unlock()
+
+	if cancel == nil {
+		return nil
+	}
+
+	cancel()
+	manager.waitGroup.Wait()
+	return nil
+}
+
+func (manager *BackendManager) waitForExit(ctx context.Context, command *exec.Cmd) {
+	defer manager.waitGroup.Done()
+
+	err := command.Wait()
+	if err != nil && ctx.Err() == nil {
+		fmt.Printf("backend service exited with error: %v\n", err)
+	}
+
+	manager.mu.Lock()
+	if manager.command == command {
+		manager.command = nil
+		manager.cancel = nil
+	}
+	manager.mu.Unlock()
 }

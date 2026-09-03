@@ -26,15 +26,23 @@ func TestFastSelir(t *testing.T) {
 		}
 
 		if previousBadNodeIndex != -1 {
-			//err := validation_manager.SetScheduledMaliciousParams(previousBadNodeIndex, currentTimestamp,
-			//	lowRatio, lowRatio, 0, 0)
+			//err := validation_manager.SetScheduledMaliciousParams(&entities.ScheduledMaliciousParams{
+			//	EmployedEpochOrTimestampMs: currentTimestamp,
+			//	NodeId: previousBadNodeIndex,
+			//	CorruptRatioStart: lowRatio,
+			//	CorruptRatioEnd: lowRatio,
+			//})
 			//if err != nil {
 			//	//return fmt.Errorf("reset corrupt ratio failed due to: %v", err)
 			//}
 		}
 
-		//err := validation_manager.SetScheduledMaliciousParams(badNodeIndex, currentTimestamp,
-		//	largeRatio, largeRatio, 0, 0)
+		//err := validation_manager.SetScheduledMaliciousParams(&entities.ScheduledMaliciousParams{
+		//	EmployedEpochOrTimestampMs: currentTimestamp,
+		//	NodeId: badNodeIndex,
+		//	CorruptRatioStart: largeRatio,
+		//	CorruptRatioEnd: largeRatio,
+		//})
 		//if err != nil {
 		//return fmt.Errorf("change corrupt ratio failed due to: %v", err)
 		//}

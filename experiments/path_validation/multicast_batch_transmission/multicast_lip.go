@@ -4,8 +4,8 @@ import (
 	"chain_simulation/entities"
 	"chain_simulation/entities/types"
 	"chain_simulation/experiments"
-	"chain_simulation/modules/breakpoint_awareness"
-	"chain_simulation/modules/fast_selir"
+	"chain_simulation/modules/experiment_related/breakpoint_awareness"
+	"chain_simulation/modules/experiment_related/fast_selir"
 	"chain_simulation/modules/topology_manager"
 	"chain_simulation/modules/validation_manager"
 	"chain_simulation/utils/file"
@@ -40,7 +40,7 @@ func GenerateMulticastLiPBatchEvents() ([]*entities.Event, error) {
 		},
 	}
 	multicastLiPBatchEvents = append(multicastLiPBatchEvents, clearKernelLogEvent)
-	calculateMapping, err := breakpoint_awareness.GetAlreadyCaclulatedFileTransmissionResult("/home/zhf/Projects/emulator/backend/cmd/final_result")
+	calculateMapping, err := breakpoint_awareness.GetAlreadyCaclulatedResult("/home/zhf/Projects/emulator/backend/cmd/final_result")
 	if err != nil {
 		return nil, fmt.Errorf("get break point failed due to: %v", err)
 	}
@@ -81,7 +81,7 @@ func GenerateMulticastLiPBatchEvents() ([]*entities.Event, error) {
 					bfEffectiveBits := fast_selir.CalculateFastSelirBFBits(insertedHvfMapping[currentDestination], 0.00001)
 					go func() {
 						for index := 1; index <= 1; index++ {
-							err = validation_manager.ModifyBloomFilter(index, bfEffectiveBits)
+							err = validation_manager.ModifyBloomFilter(index, &entities.ModifyBloomFilter{BfEffectiveBits: bfEffectiveBits})
 							if err != nil {
 								fmt.Printf("modify bloom filter failed: %v", err)
 							}
@@ -103,9 +103,18 @@ func GenerateMulticastLiPBatchEvents() ([]*entities.Event, error) {
 						messageSize := 1024
 						interval := 0.1
 						fmt.Printf("current start client %s\n", filePath)
-						err = validation_manager.StartClient(1, 1, pathValidationProtocol, 31313, destinationMapping[currentDestination],
-							"batch", 1024, 1024, "",
-							batchSize, messageSize, interval)
+						err = validation_manager.StartClient(1, &entities.StartClient{
+							SelectedNetworkLayer: pathValidationProtocol,
+							DestinationPort:      31313,
+							Processes:            1,
+							Destinations:         destinationMapping[currentDestination],
+							TransmissionPattern:  "batch",
+							FileSize:             1024,
+							BufferSize:           1024,
+							MessageSize:          messageSize,
+							BatchSize:            batchSize,
+							Interval:             interval,
+						})
 						if err != nil {
 							fmt.Printf("start client error: %v", err)
 						}

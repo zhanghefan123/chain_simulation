@@ -4,7 +4,7 @@ import (
 	"chain_simulation/entities"
 	"chain_simulation/entities/types"
 	"chain_simulation/experiments"
-	"chain_simulation/modules/breakpoint_awareness"
+	"chain_simulation/modules/experiment_related/breakpoint_awareness"
 	"chain_simulation/modules/topology_manager"
 	"chain_simulation/modules/validation_manager"
 	"chain_simulation/utils/extract"
@@ -21,7 +21,7 @@ func GenerateMulticastOptEvents() ([]*entities.Event, error) {
 			return topology_manager.StartTopology(topologyType, &entities.DynamicParameters{ConsensusThreadCount: 0})
 		},
 	}}
-	calculatedMapping, err := breakpoint_awareness.GetAlreadyCaclulatedFileTransmissionResult("/home/zhf/Projects/emulator/backend/cmd/final_result")
+	calculatedMapping, err := breakpoint_awareness.GetAlreadyCaclulatedResult("/home/zhf/Projects/emulator/backend/cmd/final_result")
 	if err != nil {
 		return nil, fmt.Errorf("get breakpoint failed: %v", err)
 	}
@@ -61,7 +61,15 @@ func GenerateMulticastOptEvents() ([]*entities.Event, error) {
 									fmt.Printf("current start server %s\n", destination)
 									destinationIndex, _ := extract.NumberFromString(destination)
 									networkInterface := fmt.Sprintf("ln%d_idx1", destinationIndex)
-									err = validation_manager.StartServer(destinationIndex, currentProcess, pathValidationProtocol, 0, 31313, "multiprocess_file", networkInterface, "Ipv4", currentDestination, "")
+									err = validation_manager.StartServer(destinationIndex, &entities.StartServer{
+										Processes:            currentProcess,
+										ListenPort:           31313,
+										NumberOfDestinations: currentDestination,
+										SelectedNetworkLayer: pathValidationProtocol,
+										ServerType:           "multiprocess_file",
+										Interface:            networkInterface,
+										IpVersion:            "Ipv4",
+									})
 									if err != nil {
 										fmt.Printf("start server error: %v", err)
 									}
@@ -81,9 +89,15 @@ func GenerateMulticastOptEvents() ([]*entities.Event, error) {
 					Handler: func() error {
 						go func() {
 							fmt.Printf("current start client %s\n", filePath)
-							err = validation_manager.StartClient(1, currentProcess, pathValidationProtocol, 31313, destinationMapping[currentDestination],
-								"file", 100, 512, "",
-								0, 0, 0)
+							err = validation_manager.StartClient(1, &entities.StartClient{
+								SelectedNetworkLayer: pathValidationProtocol,
+								DestinationPort:      31313,
+								Processes:            currentProcess,
+								Destinations:         destinationMapping[currentDestination],
+								TransmissionPattern:  "file",
+								FileSize:             100,
+								BufferSize:           512,
+							})
 							if err != nil {
 								fmt.Printf("start client error: %v", err)
 							}

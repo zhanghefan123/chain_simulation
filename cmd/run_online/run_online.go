@@ -1,10 +1,10 @@
 package run_online
 
 import (
-	onlineconfig "chain_simulation/experiments/path_validation/online/config"
-	onlineexecutor "chain_simulation/experiments/path_validation/online/executor"
-	"chain_simulation/experiments/path_validation/online/runner"
-	onlinesetup "chain_simulation/experiments/path_validation/online/setup"
+	onlineconfig "chain_simulation/experiments/online/config"
+	"chain_simulation/experiments/online/executor"
+	runner2 "chain_simulation/experiments/online/runner"
+	onlinesetup "chain_simulation/experiments/online/setup"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -40,7 +40,7 @@ func createFixedBatchCmd() *cobra.Command {
 				return
 			}
 
-			if err := runner.RunAllFixedBatchExperiments(); err != nil {
+			if err := runner2.RunAllFixedBatchExperiments(); err != nil {
 				fmt.Printf("run all fixed batch experiments failed: %v\n", err)
 			}
 		},
@@ -65,7 +65,7 @@ func createDynamicBatchCmd() *cobra.Command {
 				return
 			}
 
-			if err := runner.RunAllDynamicBatchExperiments(); err != nil {
+			if err := runner2.RunAllDynamicBatchExperiments(); err != nil {
 				fmt.Printf("run all dynamic batch experiments failed: %v\n", err)
 			}
 		},
@@ -90,7 +90,7 @@ func createPathMabCmd() *cobra.Command {
 				return
 			}
 
-			if err := runner.RunAllPathMabExperiments(); err != nil {
+			if err := runner2.RunAllPathMabExperiments(); err != nil {
 				fmt.Printf("run all path mab experiments failed: %v\n", err)
 			}
 		},
@@ -113,7 +113,7 @@ func createThroughputCmd() *cobra.Command {
 				fmt.Printf("prepare throughput experiment failed: %v\n", err)
 				return
 			}
-			if err := runner.RunAllThroughputExperiments(); err != nil {
+			if err := runner2.RunAllThroughputExperiments(); err != nil {
 				fmt.Printf("run all throughput experiments failed: %v\n", err)
 			}
 		},
@@ -173,7 +173,7 @@ func prepareOnlineExperiment(
 		return fmt.Errorf("invalid experiment runs: %w", err)
 	}
 
-	if err := onlineexecutor.SetCorruptRatioScheduleModeFromString(corruptRatioMode); err != nil {
+	if err := executor.SetCorruptRatioScheduleModeFromString(corruptRatioMode); err != nil {
 		return fmt.Errorf("invalid corrupt-ratio-mode: %w", err)
 	}
 
@@ -182,7 +182,7 @@ func prepareOnlineExperiment(
 	}
 
 	if corruptRatioMode == "random" {
-		if err := onlineexecutor.SetRandomMaliciousBadNodeCount(badNodeCount); err != nil {
+		if err := executor.SetRandomMaliciousBadNodeCount(badNodeCount); err != nil {
 			return fmt.Errorf("invalid bad-node-count: %w", err)
 		}
 	}
@@ -198,7 +198,7 @@ func prepareThroughputExperiment(
 		return fmt.Errorf("invalid experiment runs: %w", err)
 	}
 
-	if err := onlineexecutor.SetCorruptRatioScheduleModeFromString(corruptRatioMode); err != nil {
+	if err := executor.SetCorruptRatioScheduleModeFromString(corruptRatioMode); err != nil {
 		return fmt.Errorf("invalid corrupt-ratio-mode: %w", err)
 	}
 
